@@ -57,7 +57,7 @@ export function initializeTools(server: McpServer, db: DB) {
 					content: [
 						{
 							type: 'text',
-							text: `Entry "${createdEntry.title}" created successfully with ID ${createdEntry.id}`,
+							text: `Entry "${createdEntry.title}" created successfully with ID "${createdEntry.id}"`,
 						},
 					],
 				}
@@ -85,7 +85,7 @@ export function initializeTools(server: McpServer, db: DB) {
 		async ({ id }) => {
 			try {
 				const entry = await db.getEntry(id)
-				invariant(entry, `Entry ${id} not found`)
+				invariant(entry, `Entry with ID "${id}" not found`)
 				return {
 					content: [{ type: 'text', text: JSON.stringify(entry, null, 2) }],
 				}
@@ -130,25 +130,18 @@ export function initializeTools(server: McpServer, db: DB) {
 				.nullable()
 				.optional()
 				.describe('The title of the entry')
-				.transform((value) => {
-					console.log('title', { value })
-					return value ?? undefined
-				}),
+				.transform((value) => value ?? undefined),
 			content: z
 				.string()
 				.nullable()
 				.optional()
 				.describe('The content of the entry')
-				.transform((value) => {
-					console.log('content', { value })
-					return value ?? undefined
-				}),
+				.transform((value) => value ?? undefined),
 		},
 		async ({ id, ...updates }) => {
-			console.log({ updates })
 			try {
 				const existingEntry = await db.getEntry(id)
-				invariant(existingEntry, `Entry ${id} not found`)
+				invariant(existingEntry, `Entry with ID "${id}" not found`)
 				const updatedEntry = await db.updateEntry(id, updates)
 				return {
 					content: [
@@ -182,7 +175,7 @@ export function initializeTools(server: McpServer, db: DB) {
 		async ({ id }) => {
 			try {
 				const existingEntry = await db.getEntry(id)
-				invariant(existingEntry, `Entry ${id} not found`)
+				invariant(existingEntry, `Entry with ID "${id}" not found`)
 				await db.deleteEntry(id)
 				return {
 					content: [
@@ -219,7 +212,7 @@ export function initializeTools(server: McpServer, db: DB) {
 					content: [
 						{
 							type: 'text',
-							text: `Tag "${createdTag.name}" created successfully with ID ${createdTag.id}`,
+							text: `Tag "${createdTag.name}" created successfully with ID "${createdTag.id}"`,
 						},
 					],
 				}
@@ -247,7 +240,7 @@ export function initializeTools(server: McpServer, db: DB) {
 		async ({ id }) => {
 			try {
 				const tag = await db.getTag(id)
-				invariant(tag, `Tag ${id} not found`)
+				invariant(tag, `Tag ID "${id}" not found`)
 				return {
 					content: [{ type: 'text', text: JSON.stringify(tag, null, 2) }],
 				}
@@ -296,7 +289,7 @@ export function initializeTools(server: McpServer, db: DB) {
 		async ({ id, ...updates }) => {
 			try {
 				const existingTag = await db.getTag(id)
-				invariant(existingTag, `Tag ${id} not found`)
+				invariant(existingTag, `Tag with ID "${id}" not found`)
 				const updatedTag = await db.updateTag(id, updates)
 				return {
 					content: [
@@ -330,7 +323,7 @@ export function initializeTools(server: McpServer, db: DB) {
 		async ({ id }) => {
 			try {
 				const existingTag = await db.getTag(id)
-				invariant(existingTag, `Tag ${id} not found`)
+				invariant(existingTag, `Tag ID "${id}" not found`)
 				await db.deleteTag(id)
 				return {
 					content: [
@@ -368,13 +361,13 @@ export function initializeTools(server: McpServer, db: DB) {
 				const tag = await db.getTag(tagId)
 				const entry = await db.getEntry(entryId)
 				invariant(tag, `Tag ${tagId} not found`)
-				invariant(entry, `Entry ${entryId} not found`)
+				invariant(entry, `Entry with ID "${entryId}" not found`)
 				const entryTag = await db.addTagToEntry({ entryId, tagId })
 				return {
 					content: [
 						{
 							type: 'text',
-							text: `Tag ${tag.name} (${entryTag.tagId}) added to entry ${entry.title} (${entryTag.entryId}) successfully`,
+							text: `Tag "${tag.name}" (ID: ${entryTag.tagId}) added to entry "${entry.title}" (ID: ${entryTag.entryId}) successfully`,
 						},
 					],
 				}
@@ -402,7 +395,7 @@ export function initializeTools(server: McpServer, db: DB) {
 		async ({ entryId }) => {
 			try {
 				const entry = await db.getEntry(entryId)
-				invariant(entry, `Entry ${entryId} not found`)
+				invariant(entry, `Entry with ID "${entryId}" not found`)
 				const tags = await db.getEntryTags(entryId)
 				return {
 					content: [

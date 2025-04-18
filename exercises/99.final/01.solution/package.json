@@ -13,7 +13,7 @@
   },
   "devDependencies": {
     "@epic-web/config": "^1.19.0",
-    "@modelcontextprotocol/inspector": "^0.10.0",
+    "@modelcontextprotocol/inspector": "^0.10.2",
     "@types/node": "^22.14.1",
     "eslint": "^9.24.0",
     "prettier": "^3.5.3",
