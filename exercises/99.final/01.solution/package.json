@@ -21,6 +21,7 @@
     "wrangler": "^4.12.0"
   },
   "dependencies": {
+    "@cloudflare/workers-oauth-provider": "^0.0.3",
     "@epic-web/invariant": "^1.0.0",
     "@modelcontextprotocol/sdk": "^1.10.0",
     "agents": "^0.0.60",
