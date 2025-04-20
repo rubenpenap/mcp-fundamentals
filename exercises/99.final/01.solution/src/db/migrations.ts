@@ -9,6 +9,8 @@ const migrations = [
 		name: 'initial_schema',
 		up: async (db: D1Database) => {
 			console.log('Starting initial schema migration...')
+
+			// TODO: maybe cascade deletes?
 			try {
 				await db.batch([
 					db.prepare(sql`
@@ -19,8 +21,38 @@ const migrations = [
 						);
 					`),
 					db.prepare(sql`
+						CREATE TABLE IF NOT EXISTS users (
+							id integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+							email text NOT NULL UNIQUE,
+							created_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+							updated_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL
+						);
+					`),
+					// OAuth Access tokens. If user_id is null then it's not yet been claimed
+					db.prepare(sql`
+						CREATE TABLE IF NOT EXISTS access_tokens (
+							id integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+							token_value text NOT NULL UNIQUE,
+							user_id integer,
+							created_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+							updated_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL
+						);
+					`),
+					// A OTP emailed to the user to allow them to claim an access_token
+					db.prepare(sql`
+						CREATE TABLE IF NOT EXISTS validation_tokens (
+							id integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+							token_value text NOT NULL,
+							email text NOT NULL,
+							access_token_id integer NOT NULL,
+							created_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+							updated_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL
+						);
+					`),
+					db.prepare(sql`
 						CREATE TABLE IF NOT EXISTS entries (
 							id integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+							user_id integer NOT NULL,
 							title text NOT NULL,
 							content text NOT NULL,
 							mood text,
@@ -35,6 +67,7 @@ const migrations = [
 					db.prepare(sql`
 						CREATE TABLE IF NOT EXISTS tags (
 							id integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+							user_id integer NOT NULL,
 							name text NOT NULL UNIQUE,
 							description text,
 							created_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
@@ -44,6 +77,7 @@ const migrations = [
 					db.prepare(sql`
 						CREATE TABLE IF NOT EXISTS entry_tags (
 							id integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+							user_id integer NOT NULL,
 							entry_id integer NOT NULL,
 							tag_id integer NOT NULL,
 							created_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL,

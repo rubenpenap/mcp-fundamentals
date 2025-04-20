@@ -34,4 +34,11 @@
 			"migrations_dir": "src/db/migrations",
 		},
 	],
+	"kv_namespaces": [
+		{
+			"binding": "OAUTH_KV",
+			"id": "OAUTH_KV",
+			"preview_id": "OAUTH_KV",
+		},
+	],
 }

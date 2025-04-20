@@ -11,9 +11,17 @@ const timestampSchema = z.preprocess((val) => {
 	return val
 }, z.number())
 
+export const userSchema = z.object({
+	id: z.coerce.number(),
+	email: z.string(),
+	createdAt: timestampSchema,
+	updatedAt: timestampSchema,
+})
+
 // Schema Validation
 export const entrySchema = z.object({
 	id: z.coerce.number(),
+	userId: z.coerce.number(),
 	title: z.string(),
 	content: z.string(),
 	mood: z.string().nullable(),
@@ -28,15 +36,16 @@ export const entrySchema = z.object({
 export const newEntrySchema = z.object({
 	title: z.string(),
 	content: z.string(),
-	mood: z.string().nullable().default(null),
-	location: z.string().nullable().default(null),
-	weather: z.string().nullable().default(null),
-	isPrivate: z.number().default(1),
-	isFavorite: z.number().default(0),
+	mood: z.string().optional().nullable().default(null),
+	location: z.string().optional().nullable().default(null),
+	weather: z.string().optional().nullable().default(null),
+	isPrivate: z.number().optional().default(1),
+	isFavorite: z.number().optional().default(0),
 })
 
 export const tagSchema = z.object({
 	id: z.coerce.number(),
+	userId: z.coerce.number(),
 	name: z.string(),
 	description: z.string().nullable(),
 	createdAt: timestampSchema,
@@ -50,6 +59,7 @@ export const newTagSchema = z.object({
 
 export const entryTagSchema = z.object({
 	id: z.coerce.number(),
+	userId: z.coerce.number(),
 	entryId: z.coerce.number(),
 	tagId: z.coerce.number(),
 	createdAt: timestampSchema,
