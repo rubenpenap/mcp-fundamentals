@@ -88,17 +88,17 @@ export class DB {
 
 	async createValidationToken(
 		email: string,
-		accessTokenId: number,
+		grantId: number,
 		validationToken: string,
 	) {
 		const insertResult = await this.db
 			.prepare(
 				sql`
-					INSERT INTO validation_tokens (email, access_token_id, token_value)
+					INSERT INTO validation_tokens (email, grant_id, token_value)
 					VALUES (?1, ?2, ?3)
 				`,
 			)
-			.bind(email, accessTokenId, validationToken)
+			.bind(email, grantId, validationToken)
 			.run()
 
 		if (!insertResult.success || !insertResult.meta.last_row_id) {
@@ -116,6 +116,7 @@ export class DB {
 				sql`
 					SELECT id, email, grant_id FROM validation_tokens
 					WHERE grant_id = ?1 AND token_value = ?2
+					LIMIT 1
 				`,
 			)
 			.bind(grantId, validationToken)
@@ -129,6 +130,7 @@ export class DB {
 				sql`
 					SELECT id FROM users
 					WHERE email = ?1
+					LIMIT 1
 				`,
 			)
 			.bind(validationResult.email)
@@ -142,12 +144,12 @@ export class DB {
 			userId = createdUser.id
 		}
 
-		// set access token to user id
+		// set grant to user id
 		const claimGrantResult = await this.db
 			.prepare(
 				sql`
 					UPDATE grants
-					SET user_id = ?1, updated_at = CURRENT_TIMESTAMP 
+					SET user_id = ?1, updated_at = CURRENT_TIMESTAMP
 					WHERE id = ?2
 				`,
 			)
@@ -264,27 +266,85 @@ export class DB {
 	}
 
 	async getEntry(userId: number, id: number) {
-		const result = await this.db
+		const entryResult = await this.db
 			.prepare(sql`SELECT * FROM entries WHERE id = ?1 AND user_id = ?2`)
 			.bind(id, userId)
 			.first()
 
-		if (!result) return null
+		if (!entryResult) return null
 
-		return entrySchema.parse(snakeToCamel(result))
+		const entry = entrySchema.parse(snakeToCamel(entryResult))
+
+		// Get tags for this entry
+		const tagsResult = await this.db
+			.prepare(
+				sql`
+					SELECT t.id, t.name
+					FROM tags t
+					JOIN entry_tags et ON et.tag_id = t.id
+					WHERE et.entry_id = ?1
+					ORDER BY t.name
+				`,
+			)
+			.bind(id)
+			.all()
+
+		const tags = z
+			.array(
+				z.object({
+					id: z.number(),
+					name: z.string(),
+				}),
+			)
+			.parse(tagsResult.results.map((result) => snakeToCamel(result)))
+
+		return {
+			...entry,
+			tags,
+		}
 	}
 
-	async listEntries(userId: number) {
+	async listEntries(userId: number, tagIds?: number[]) {
+		const queryParts = [
+			sql`SELECT DISTINCT e.*, COUNT(et.id) as tag_count`,
+			sql`FROM entries e`,
+			sql`LEFT JOIN entry_tags et ON e.id = et.entry_id`,
+			sql`WHERE e.user_id = ?1`,
+		]
+		const params: number[] = [userId]
+
+		if (tagIds && tagIds.length > 0) {
+			queryParts.push(sql`AND EXISTS (
+				SELECT 1 FROM entry_tags et2 
+				WHERE et2.entry_id = e.id 
+				AND et2.tag_id IN (${tagIds.map((_, i) => `?${i + 2}`).join(',')})
+			)`)
+			params.push(...tagIds)
+		}
+
+		queryParts.push(sql`GROUP BY e.id`, sql`ORDER BY e.created_at DESC`)
+
+		const query = queryParts.join(' ')
 		const results = await this.db
-			.prepare(
-				sql`SELECT * FROM entries WHERE user_id = ?1 ORDER BY created_at DESC`,
-			)
-			.bind(userId)
+			.prepare(query)
+			.bind(...params)
 			.all()
 
 		return z
-			.array(entrySchema)
-			.parse(results.results.map((result) => snakeToCamel(result)))
+			.array(
+				z.object({
+					id: z.number(),
+					title: z.string(),
+					tagCount: z.number(),
+				}),
+			)
+			.parse(
+				results.results.map((result) => ({
+					id: result.id,
+					title: result.title,
+					tagCount: result.tag_count,
+				})),
+			)
 	}
 
 	async updateEntry(
@@ -297,8 +357,9 @@ export class DB {
 			throw new Error(`Entry with ID ${id} not found`)
 		}
 
+		// Only include fields that are explicitly provided (even if null) but not undefined
 		const updates = Object.entries(entry)
-			.filter(([key, value]) => value !== undefined && key !== 'userId')
+			.filter(([key, value]) => key !== 'userId' && value !== undefined)
 			.map(
 				([key], index) =>
 					`${key === 'isPrivate' ? 'is_private' : key === 'isFavorite' ? 'is_favorite' : key} = ?${index + 3}`,
@@ -319,7 +380,7 @@ export class DB {
 			id,
 			userId,
 			...Object.entries(entry)
-				.filter(([key, value]) => value !== undefined && key !== 'userId')
+				.filter(([key, value]) => key !== 'userId' && value !== undefined)
 				.map(([, value]) => value),
 		]
 
@@ -343,13 +404,6 @@ export class DB {
 			throw new Error(`Entry with ID ${id} not found`)
 		}
 
-		// First delete all entry tags
-		await this.db
-			.prepare(sql`DELETE FROM entry_tags WHERE entry_id = ?1`)
-			.bind(id)
-			.run()
-
-		// Then delete the entry
 		const deleteResult = await this.db
 			.prepare(sql`DELETE FROM entries WHERE id = ?1 AND user_id = ?2`)
 			.bind(id, userId)
@@ -400,12 +454,24 @@ export class DB {
 
 	async listTags(userId: number) {
 		const results = await this.db
-			.prepare(sql`SELECT * FROM tags WHERE user_id = ?1 ORDER BY name`)
+			.prepare(
+				sql`
+				SELECT id, name 
+				FROM tags 
+				WHERE user_id = ?1 
+				ORDER BY name
+			`,
+			)
 			.bind(userId)
 			.all()
 
 		return z
-			.array(tagSchema)
+			.array(
+				z.object({
+					id: z.number(),
+					name: z.string(),
+				}),
+			)
 			.parse(results.results.map((result) => snakeToCamel(result)))
 	}
 
@@ -429,13 +495,14 @@ export class DB {
 		}
 
 		const ps = this.db.prepare(sql`
-			UPDATE tags 
-			SET ${updates}, updated_at = CURRENT_TIMESTAMP 
+			UPDATE tags
+			SET ${updates}, updated_at = CURRENT_TIMESTAMP
 			WHERE id = ?1 AND user_id = ?2
 		`)
 
 		const updateValues = [
 			id,
+			userId,
 			...Object.entries(tag)
 				.filter(([, value]) => value !== undefined)
 				.map(([, value]) => value),
@@ -461,13 +528,6 @@ export class DB {
 			throw new Error(`Tag with ID ${id} not found`)
 		}
 
-		// First delete all entry tags
-		await this.db
-			.prepare(sql`DELETE FROM entry_tags WHERE tag_id = ?1 AND user_id = ?2`)
-			.bind(id, userId)
-			.run()
-
-		// Then delete the tag
 		const deleteResult = await this.db
 			.prepare(sql`DELETE FROM tags WHERE id = ?1 AND user_id = ?2`)
 			.bind(id, userId)

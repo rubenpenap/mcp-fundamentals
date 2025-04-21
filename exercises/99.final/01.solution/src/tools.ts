@@ -38,6 +38,10 @@ const createEntryInputSchema = {
 		.describe(
 			'Whether the entry is a favorite (1 for favorite, 0 for not favorite)',
 		),
+	tags: z
+		.array(z.number())
+		.optional()
+		.describe('The IDs of the tags to add to the entry'),
 }
 
 const createTagInputSchema = {
@@ -58,18 +62,18 @@ export function initializeTools(agent: EpicMeMCP) {
 The user's email address for their account.
 
 Please ask them explicitely for this and don't just guess.
-			`.trim(),
+					`.trim(),
 				),
 		},
 		async ({ email }) => {
 			try {
-				const accessToken = await requireGrantId()
+				const grant = await requireGrantId()
 				const { otp } = await generateTOTP({
 					period: 30,
 					digits: 6,
 					algorithm: 'SHA-512',
 				})
-				await agent.db.createValidationToken(email, accessToken.id, otp)
+				await agent.db.createValidationToken(email, grant.id, otp)
 				// TODO: send an actual email
 				console.log(`Email: Here's your EpicMeMCP validation token: ${otp}`)
 				return createReply(
@@ -167,22 +171,64 @@ Please ask them explicitely for this and don't just guess.
 		},
 	)
 
-	agent.server.tool('list_entries', 'List all journal entries', async () => {
-		try {
-			const user = await requireUser()
-			const entries = await agent.db.listEntries(user.id)
-			return createReply(entries)
-		} catch (error) {
-			return createErrorReply(error)
-		}
-	})
+	agent.server.tool(
+		'list_entries',
+		'List all journal entries',
+		{
+			tagIds: z
+				.array(z.number())
+				.optional()
+				.describe('Optional array of tag IDs to filter entries by'),
+		},
+		async ({ tagIds }) => {
+			try {
+				const user = await requireUser()
+				const entries = await agent.db.listEntries(user.id, tagIds)
+				return createReply(entries)
+			} catch (error) {
+				return createErrorReply(error)
+			}
+		},
+	)
 
 	agent.server.tool(
 		'update_entry',
-		'Update a journal entry',
+		'Update a journal entry. Fields that are not provided (or set to undefined) will not be updated. Fields that are set to null or any other value will be updated.',
 		{
 			id: z.number(),
-			...createEntryInputSchema,
+			title: z.string().optional().describe('The title of the entry'),
+			content: z.string().optional().describe('The content of the entry'),
+			mood: z
+				.string()
+				.nullable()
+				.optional()
+				.describe(
+					'The mood of the entry (for example: "happy", "sad", "anxious", "excited")',
+				),
+			location: z
+				.string()
+				.nullable()
+				.optional()
+				.describe(
+					'The location of the entry (for example: "home", "work", "school", "park")',
+				),
+			weather: z
+				.string()
+				.nullable()
+				.optional()
+				.describe(
+					'The weather of the entry (for example: "sunny", "cloudy", "rainy", "snowy")',
+				),
+			isPrivate: z
+				.number()
+				.optional()
+				.describe('Whether the entry is private (1 for private, 0 for public)'),
+			isFavorite: z
+				.number()
+				.optional()
+				.describe(
+					'Whether the entry is a favorite (1 for favorite, 0 for not favorite)',
+				),
 		},
 		async ({ id, ...updates }) => {
 			try {
@@ -274,15 +320,13 @@ Please ask them explicitely for this and don't just guess.
 			...Object.fromEntries(
 				Object.entries(createTagInputSchema).map(([key, value]) => [
 					key,
-					value.optional(),
+					value.nullable().optional(),
 				]),
 			),
 		},
 		async ({ id, ...updates }) => {
 			try {
 				const user = await requireUser()
-				const existingTag = await agent.db.getTag(user.id, id)
-				invariant(existingTag, `Tag with ID "${id}" not found`)
 				const updatedTag = await agent.db.updateTag(user.id, id, updates)
 				return createReply(
 					`Tag "${updatedTag.name}" (ID: ${id}) updated successfully`,
@@ -336,25 +380,6 @@ Please ask them explicitely for this and don't just guess.
 				return createReply(
 					`Tag "${tag.name}" (ID: ${entryTag.tagId}) added to entry "${entry.title}" (ID: ${entryTag.entryId}) successfully`,
 				)
-			} catch (error) {
-				return createErrorReply(error)
-			}
-		},
-	)
-
-	agent.server.tool(
-		'get_entry_tags',
-		'Get all tags for an entry',
-		{
-			entryId: z.number().describe('The ID of the entry'),
-		},
-		async ({ entryId }) => {
-			try {
-				const user = await requireUser()
-				const entry = await agent.db.getEntry(user.id, entryId)
-				invariant(entry, `Entry with ID "${entryId}" not found`)
-				const tags = await agent.db.getEntryTags(user.id, entryId)
-				return createReply(tags)
 			} catch (error) {
 				return createErrorReply(error)
 			}

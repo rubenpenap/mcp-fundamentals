@@ -30,7 +30,7 @@ export const validationTokenSchema = z.object({
 	id: z.coerce.number(),
 	tokenValue: z.string(),
 	email: z.string().email(),
-	accessTokenId: z.coerce.number(),
+	grantId: z.coerce.number(),
 	createdAt: timestampSchema,
 	updatedAt: timestampSchema,
 })

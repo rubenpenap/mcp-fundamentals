@@ -27,6 +27,7 @@ const migrations = [
 							created_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
 							updated_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL
 						);
+						CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 					`),
 					// This is a mapping of a grant_user_id (accessible via props.grantId)
 					// to the user_id that can be used to claim the grant. If user_id is
@@ -41,19 +42,26 @@ const migrations = [
 							grant_user_id text NOT NULL,
 							user_id integer,
 							created_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
-							updated_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL
+							updated_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+							FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 						);
+						CREATE INDEX IF NOT EXISTS idx_grants_user_id ON grants(user_id);
+						CREATE INDEX IF NOT EXISTS idx_grants_grant_user_id ON grants(grant_user_id);
 					`),
-					// An OTP emailed to the user to allow them to claim an access_token
+					// An OTP emailed to the user to allow them to claim a grant
 					db.prepare(sql`
 						CREATE TABLE IF NOT EXISTS validation_tokens (
 							id integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 							token_value text NOT NULL,
 							email text NOT NULL,
-							grant_id text NOT NULL,
+							grant_id integer NOT NULL,
 							created_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
-							updated_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL
+							updated_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+							FOREIGN KEY (grant_id) REFERENCES grants(id) ON DELETE CASCADE
 						);
+						CREATE INDEX IF NOT EXISTS idx_validation_tokens_email ON validation_tokens(email);
+						CREATE INDEX IF NOT EXISTS idx_validation_tokens_token ON validation_tokens(token_value);
+						CREATE INDEX IF NOT EXISTS idx_validation_tokens_grant ON validation_tokens(grant_id);
 					`),
 					db.prepare(sql`
 						CREATE TABLE IF NOT EXISTS entries (
@@ -64,21 +72,28 @@ const migrations = [
 							mood text,
 							location text,
 							weather text,
-							is_private integer DEFAULT true NOT NULL,
-							is_favorite integer DEFAULT false NOT NULL,
+							is_private integer DEFAULT 1 NOT NULL CHECK (is_private IN (0, 1)),
+							is_favorite integer DEFAULT 0 NOT NULL CHECK (is_favorite IN (0, 1)),
 							created_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
-							updated_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL
+							updated_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+							FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 						);
+						CREATE INDEX IF NOT EXISTS idx_entries_user_id ON entries(user_id);
+						CREATE INDEX IF NOT EXISTS idx_entries_created_at ON entries(created_at);
+						CREATE INDEX IF NOT EXISTS idx_entries_is_private ON entries(is_private);
 					`),
 					db.prepare(sql`
 						CREATE TABLE IF NOT EXISTS tags (
 							id integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 							user_id integer NOT NULL,
-							name text NOT NULL UNIQUE,
+							name text NOT NULL,
 							description text,
 							created_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
-							updated_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL
+							updated_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+							FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+							UNIQUE(user_id, name)
 						);
+						CREATE INDEX IF NOT EXISTS idx_tags_user_id ON tags(user_id);
 					`),
 					db.prepare(sql`
 						CREATE TABLE IF NOT EXISTS entry_tags (
@@ -88,9 +103,14 @@ const migrations = [
 							tag_id integer NOT NULL,
 							created_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
 							updated_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
-							FOREIGN KEY (entry_id) REFERENCES entries(id) ON UPDATE no action ON DELETE no action,
-							FOREIGN KEY (tag_id) REFERENCES tags(id) ON UPDATE no action ON DELETE no action
+							FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+							FOREIGN KEY (entry_id) REFERENCES entries(id) ON DELETE CASCADE,
+							FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE,
+							UNIQUE(entry_id, tag_id)
 						);
+						CREATE INDEX IF NOT EXISTS idx_entry_tags_user ON entry_tags(user_id);
+						CREATE INDEX IF NOT EXISTS idx_entry_tags_entry ON entry_tags(entry_id);
+						CREATE INDEX IF NOT EXISTS idx_entry_tags_tag ON entry_tags(tag_id);
 					`),
 				])
 				console.log('Successfully created all tables')
