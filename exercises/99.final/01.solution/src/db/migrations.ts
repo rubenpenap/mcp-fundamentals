@@ -28,23 +28,29 @@ const migrations = [
 							updated_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL
 						);
 					`),
-					// OAuth Access tokens. If user_id is null then it's not yet been claimed
+					// This is a mapping of a grant_user_id (accessible via props.grantId)
+					// to the user_id that can be used to claim the grant. If user_id is
+					// null then it's not yet been claimed. When a user validates their
+					// email, we can update the user_id for the grant and find the
+					// appropriate user in future requests. and then the client
+					// can use that user_id to list and revoke grants (find all grants for
+					// a user then list/revoke them).
 					db.prepare(sql`
-						CREATE TABLE IF NOT EXISTS access_tokens (
+						CREATE TABLE IF NOT EXISTS grants (
 							id integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-							token_value text NOT NULL UNIQUE,
+							grant_user_id text NOT NULL,
 							user_id integer,
 							created_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
 							updated_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL
 						);
 					`),
-					// A OTP emailed to the user to allow them to claim an access_token
+					// An OTP emailed to the user to allow them to claim an access_token
 					db.prepare(sql`
 						CREATE TABLE IF NOT EXISTS validation_tokens (
 							id integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 							token_value text NOT NULL,
 							email text NOT NULL,
-							access_token_id integer NOT NULL,
+							grant_id text NOT NULL,
 							created_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
 							updated_at integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL
 						);

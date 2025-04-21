@@ -23,6 +23,7 @@
   "dependencies": {
     "@cloudflare/workers-oauth-provider": "^0.0.3",
     "@epic-web/invariant": "^1.0.0",
+    "@epic-web/totp": "^4.0.1",
     "@modelcontextprotocol/sdk": "^1.10.0",
     "agents": "^0.0.60",
     "zod": "^3.24.3"

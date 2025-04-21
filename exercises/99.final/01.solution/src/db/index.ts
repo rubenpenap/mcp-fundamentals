@@ -17,6 +17,7 @@ import {
 	entryTagSchema,
 	newEntryTagSchema,
 	userSchema,
+	grantSchema,
 } from './schema.ts'
 import { sql, snakeToCamel } from './utils.ts'
 
@@ -34,18 +35,31 @@ export class DB {
 		return db
 	}
 
-	async getUserByToken(token: string) {
+	async createUnclaimedGrant(grantUserId: string) {
+		const insertResult = await this.db
+			.prepare(sql`INSERT INTO grants (grant_user_id) VALUES (?1)`)
+			.bind(grantUserId)
+			.run()
+
+		if (!insertResult.success || !insertResult.meta.last_row_id) {
+			throw new Error('Failed to create grant: ' + insertResult.error)
+		}
+
+		return insertResult.meta.last_row_id
+	}
+
+	async getUserByGrantId(grantId: string) {
 		// TODO: I don't have internet, so turn this into a single query when I do...
 		// also add TAKE 1 or whatever
-		const tokensResult = await this.db
-			.prepare(sql`SELECT user_id FROM access_tokens WHERE token_value = ?1`)
-			.bind(token)
+		const grantsResult = await this.db
+			.prepare(sql`SELECT user_id FROM grants WHERE id = ?1`)
+			.bind(grantId)
 			.first()
-		if (!tokensResult) return null
+		if (!grantsResult) return null
 
 		const userResult = await this.db
 			.prepare(sql`SELECT * FROM users WHERE id = ?1`)
-			.bind(tokensResult.user_id)
+			.bind(grantsResult.user_id)
 			.first()
 		if (!userResult) return null
 
@@ -62,35 +76,14 @@ export class DB {
 		return userSchema.parse(snakeToCamel(userResult))
 	}
 
-	async getAccessTokenIdByValue(tokenValue: string) {
-		const tokenResult = await this.db
-			.prepare(sql`SELECT id FROM access_tokens WHERE token_value = ?1`)
-			.bind(tokenValue)
+	async getGrant(grantId: string) {
+		const grantResult = await this.db
+			.prepare(sql`SELECT * FROM grants WHERE id = ?1`)
+			.bind(grantId)
 			.first()
-		if (!tokenResult) return null
+		if (!grantResult) return null
 
-		return tokenResult.id
-	}
-
-	async createAccessTokenIfNecessary(tokenValue: string) {
-		const existingAccessTokenId = await this.getAccessTokenIdByValue(tokenValue)
-		if (existingAccessTokenId) return existingAccessTokenId
-
-		const insertResult = await this.db
-			.prepare(
-				sql`
-					INSERT INTO access_tokens (token_value)
-					VALUES (?1)
-				`,
-			)
-			.bind(tokenValue)
-			.run()
-
-		if (!insertResult.success || !insertResult.meta.last_row_id) {
-			throw new Error('Failed to create access token: ' + insertResult.error)
-		}
-
-		return insertResult.meta.last_row_id
+		return grantSchema.parse(snakeToCamel(grantResult))
 	}
 
 	async createValidationToken(
@@ -117,15 +110,15 @@ export class DB {
 		return insertResult.meta.last_row_id
 	}
 
-	async validateAccessToken(accessTokenId: number, validationToken: string) {
+	async validateTokenToGrant(grantId: number, validationToken: string) {
 		const validationResult = await this.db
 			.prepare(
 				sql`
-					SELECT id, email, access_token_id FROM validation_tokens
-					WHERE access_token_id = ?1 AND token_value = ?2
+					SELECT id, email, grant_id FROM validation_tokens
+					WHERE grant_id = ?1 AND token_value = ?2
 				`,
 			)
-			.bind(accessTokenId, validationToken)
+			.bind(grantId, validationToken)
 			.first()
 
 		if (!validationResult) {
@@ -150,22 +143,19 @@ export class DB {
 		}
 
 		// set access token to user id
-		const claimAccessTokenResult = await this.db
+		const claimGrantResult = await this.db
 			.prepare(
 				sql`
-					UPDATE access_tokens
-					SET user_id = ?2, updated_at = CURRENT_TIMESTAMP 
-					WHERE id = ?1
+					UPDATE grants
+					SET user_id = ?1, updated_at = CURRENT_TIMESTAMP 
+					WHERE id = ?2
 				`,
 			)
-			.bind(validationResult.access_token_id, userId)
+			.bind(userId, validationResult.grant_id)
 			.run()
 
-		if (
-			!claimAccessTokenResult.success ||
-			!claimAccessTokenResult.meta.last_row_id
-		) {
-			throw new Error('Failed to create user: ' + claimAccessTokenResult.error)
+		if (!claimGrantResult.success) {
+			throw new Error('Failed to claim grant: ' + claimGrantResult.error)
 		}
 
 		// delete validation token (fire and forget)
@@ -181,16 +171,21 @@ export class DB {
 		}
 	}
 
-	async deleteAccessToken(userId: number, tokenValue: string) {
-		await this.db
+	async deleteGrant(userId: number, grantId: string) {
+		const deleteResult = await this.db
 			.prepare(
 				sql`
-					DELETE FROM access_tokens
-					WHERE user_id = ?1 AND token_value = ?2
+					DELETE FROM grants
+					WHERE user_id = ?1 AND grant_user_id = ?2
 				`,
 			)
-			.bind(userId, tokenValue)
+			.bind(userId, grantId)
 			.run()
+
+		if (!deleteResult.success) {
+			throw new Error('Failed to delete grant: ' + deleteResult.error)
+		}
+		// TODO: delete the grant from OAUTH_PROVIDER as well
 	}
 
 	async createUserByEmail(email: string) {
@@ -403,9 +398,10 @@ export class DB {
 		return tagSchema.parse(snakeToCamel(result))
 	}
 
-	async listTags() {
+	async listTags(userId: number) {
 		const results = await this.db
-			.prepare(sql`SELECT * FROM tags ORDER BY name`)
+			.prepare(sql`SELECT * FROM tags WHERE user_id = ?1 ORDER BY name`)
+			.bind(userId)
 			.all()
 
 		return z
@@ -521,7 +517,7 @@ export class DB {
 	async getEntryTag(userId: number, id: number) {
 		const result = await this.db
 			.prepare(sql`SELECT * FROM entry_tags WHERE id = ?1 AND user_id = ?2`)
-			.bind(id)
+			.bind(id, userId)
 			.first()
 
 		if (!result) return null

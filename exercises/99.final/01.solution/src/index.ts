@@ -8,7 +8,7 @@ import { initializeTools } from './tools.ts'
 import { type Env } from './types'
 
 type State = {}
-type Props = { accessToken: string }
+type Props = { grantId: string; grantUserId: string }
 
 export class EpicMeMCP extends McpAgent<Env, State, Props> {
 	db!: DB
@@ -60,27 +60,23 @@ const defaultHandler = {
 					return new Response('Invalid client', { status: 400 })
 				}
 
-				const userId = 'EpicMeMCP'
-				// TODO: make this like crypto nice or whatever
-				const accessToken = Math.random().toString(16).slice(2)
+				const db = await DB.getInstance(env)
+				const grantUserId = crypto.randomUUID()
+				const grantId = await db.createUnclaimedGrant(grantUserId)
 
 				const result = await env.OAUTH_PROVIDER.completeAuthorization({
 					request: oauthReqInfo,
-					userId,
-					props: { accessToken },
+					// Here's one of the hacks. We don't know who the user is yet since the token at
+					// this point is unclaimed. But completeAuthorization expects a userId.
+					// So we'll generate a random UUID as a temporary userId
+					userId: grantUserId,
+					props: { grantId, grantUserId },
 					scope: ['full'],
-					metadata: {
-						grantDate: new Date().toISOString(),
-					},
+					metadata: { grantDate: new Date().toISOString() },
 				})
 
 				// Redirect to the client with the authorization code
-				return new Response(null, {
-					status: 302,
-					headers: {
-						Location: result.redirectTo,
-					},
-				})
+				return Response.redirect(result.redirectTo)
 			} catch (error) {
 				console.error('Authorization error:', error)
 				return new Response(
@@ -105,7 +101,6 @@ const oauthProvider = new OAuthProvider({
 	authorizeEndpoint: '/authorize',
 	tokenEndpoint: '/oauth/token',
 	clientRegistrationEndpoint: '/oauth/register',
-	scopesSupported: ['full'],
 })
 
 export default {

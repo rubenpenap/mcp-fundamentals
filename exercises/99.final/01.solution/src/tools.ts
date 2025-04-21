@@ -1,4 +1,6 @@
 import { invariant } from '@epic-web/invariant'
+import { generateTOTP } from '@epic-web/totp'
+import { type CallToolResult } from '@modelcontextprotocol/sdk/types.js'
 import { z } from 'zod'
 import { type EpicMeMCP } from './index.ts'
 import { getErrorMessage } from './utils.ts'
@@ -9,21 +11,18 @@ const createEntryInputSchema = {
 	mood: z
 		.string()
 		.optional()
-		.nullable()
 		.describe(
 			'The mood of the entry (for example: "happy", "sad", "anxious", "excited")',
 		),
 	location: z
 		.string()
 		.optional()
-		.nullable()
 		.describe(
 			'The location of the entry (for example: "home", "work", "school", "park")',
 		),
 	weather: z
 		.string()
 		.optional()
-		.nullable()
 		.describe(
 			'The weather of the entry (for example: "sunny", "cloudy", "rainy", "snowy")',
 		),
@@ -64,42 +63,20 @@ Please ask them explicitely for this and don't just guess.
 		},
 		async ({ email }) => {
 			try {
-				const accessTokenId = await agent.db.getAccessTokenIdByValue(
-					agent.props.accessToken,
-				)
-				invariant(typeof accessTokenId === 'number', () => {
-					console.error(
-						'This should not happen. The accessTokenId is not a number',
-						{ accessTokenId, accessToken: agent.props.accessToken },
-					)
-					return `accessTokenId for the given access token is not of type number, it's a "${typeof accessTokenId}" (${accessTokenId})`
+				const accessToken = await requireGrantId()
+				const { otp } = await generateTOTP({
+					period: 30,
+					digits: 6,
+					algorithm: 'SHA-512',
 				})
-				const otp = Array.from({ length: 6 }, () =>
-					Math.random().toFixed(1).slice(2),
-				).join('')
-				await agent.db.createValidationToken(email, accessTokenId, otp)
-				console.log(`Email: Here's your EpicMeMCP validation token: ${otp}`)
+				await agent.db.createValidationToken(email, accessToken.id, otp)
 				// TODO: send an actual email
-				// TODO: generate a OTP
-				return {
-					content: [
-						{
-							type: 'text',
-							text: `The user has been sent an email to ${email} with a validation token. Please have the user submit that token using the validate_token tool.`,
-						},
-					],
-				}
+				console.log(`Email: Here's your EpicMeMCP validation token: ${otp}`)
+				return createReply(
+					`The user has been sent an email to ${email} with a validation token. Please have the user submit that token using the validate_token tool.`,
+				)
 			} catch (error) {
-				console.error('Failed to authenticate:', error)
-				return {
-					isError: true,
-					content: [
-						{
-							type: 'text',
-							text: `Failed to create entry: ${getErrorMessage(error)}`,
-						},
-					],
-				}
+				return createErrorReply(error)
 			}
 		},
 	)
@@ -116,41 +93,17 @@ Please ask them explicitely for this and don't just guess.
 		},
 		async ({ validationToken }) => {
 			try {
-				const accessTokenId = await agent.db.getAccessTokenIdByValue(
-					agent.props.accessToken,
-				)
-				invariant(typeof accessTokenId === 'number', () => {
-					console.error(
-						'This should not happen. The accessTokenId is not a number',
-						{ accessTokenId, accessToken: agent.props.accessToken },
-					)
-					return `accessTokenId for the given access token is not of type number, it's a "${typeof accessTokenId}" (${accessTokenId})`
-				})
-
-				const user = await agent.db.validateAccessToken(
-					accessTokenId,
+				const grant = await requireGrantId()
+				const user = await agent.db.validateTokenToGrant(
+					grant.id,
 					validationToken,
 				)
 
-				return {
-					content: [
-						{
-							type: 'text',
-							text: `The user's token has been validated as the owner of the account "${user.email}" (ID: ${user.id}). The user can now execute authenticated tools.`,
-						},
-					],
-				}
+				return createReply(
+					`The user's token has been validated as the owner of the account "${user.email}" (ID: ${user.id}). The user can now execute authenticated tools.`,
+				)
 			} catch (error) {
-				console.error('Failed to validate token:', error)
-				return {
-					isError: true,
-					content: [
-						{
-							type: 'text',
-							text: `Failed to validate token: ${getErrorMessage(error)}`,
-						},
-					],
-				}
+				return createErrorReply(error)
 			}
 		},
 	)
@@ -161,20 +114,9 @@ Please ask them explicitely for this and don't just guess.
 		async () => {
 			try {
 				const user = await requireUser()
-				return {
-					content: [{ type: 'text', text: JSON.stringify(user) }],
-				}
+				return createReply(user)
 			} catch (error) {
-				console.error('Failed to get user info:', error)
-				return {
-					isError: true,
-					content: [
-						{
-							type: 'text',
-							text: `Failed to get user info: ${getErrorMessage(error)}`,
-						},
-					],
-				}
+				return createErrorReply(error)
 			}
 		},
 	)
@@ -182,21 +124,10 @@ Please ask them explicitely for this and don't just guess.
 	agent.server.tool('logout', 'Remove authentication information', async () => {
 		try {
 			const user = await requireUser()
-			await agent.db.deleteAccessToken(user.id, agent.props.accessToken)
-			return {
-				content: [{ type: 'text', text: 'Logout successful' }],
-			}
+			await agent.db.deleteGrant(user.id, agent.props.grantId)
+			return createReply('Logout successful')
 		} catch (error) {
-			console.error('Failed to logout:', error)
-			return {
-				isError: true,
-				content: [
-					{
-						type: 'text',
-						text: `Failed to logout: ${getErrorMessage(error)}`,
-					},
-				],
-			}
+			return createErrorReply(error)
 		}
 	})
 
@@ -209,25 +140,11 @@ Please ask them explicitely for this and don't just guess.
 			try {
 				const user = await requireUser()
 				const createdEntry = await agent.db.createEntry(user.id, entry)
-				return {
-					content: [
-						{
-							type: 'text',
-							text: `Entry "${createdEntry.title}" created successfully with ID "${createdEntry.id}"`,
-						},
-					],
-				}
+				return createReply(
+					`Entry "${createdEntry.title}" created successfully with ID "${createdEntry.id}"`,
+				)
 			} catch (error) {
-				console.error('Failed to create entry:', error)
-				return {
-					isError: true,
-					content: [
-						{
-							type: 'text',
-							text: `Failed to create entry: ${getErrorMessage(error)}`,
-						},
-					],
-				}
+				return createErrorReply(error)
 			}
 		},
 	)
@@ -241,22 +158,11 @@ Please ask them explicitely for this and don't just guess.
 		async ({ id }) => {
 			try {
 				const user = await requireUser()
-				const entry = await agent.db.getEntry(id, user.id)
+				const entry = await agent.db.getEntry(user.id, id)
 				invariant(entry, `Entry with ID "${id}" not found`)
-				return {
-					content: [{ type: 'text', text: JSON.stringify(entry, null, 2) }],
-				}
+				return createReply(entry)
 			} catch (error) {
-				console.error('Failed to get entry:', error)
-				return {
-					isError: true,
-					content: [
-						{
-							type: 'text',
-							text: `Failed to get entry: ${getErrorMessage(error)}`,
-						},
-					],
-				}
+				return createErrorReply(error)
 			}
 		},
 	)
@@ -264,22 +170,10 @@ Please ask them explicitely for this and don't just guess.
 	agent.server.tool('list_entries', 'List all journal entries', async () => {
 		try {
 			const user = await requireUser()
-			console.log({ user })
 			const entries = await agent.db.listEntries(user.id)
-			return {
-				content: [{ type: 'text', text: JSON.stringify(entries, null, 2) }],
-			}
+			return createReply(entries)
 		} catch (error) {
-			console.error('Failed to list entries:', error)
-			return {
-				isError: true,
-				content: [
-					{
-						type: 'text',
-						text: `Failed to list entries: ${getErrorMessage(error)}`,
-					},
-				],
-			}
+			return createErrorReply(error)
 		}
 	})
 
@@ -289,18 +183,6 @@ Please ask them explicitely for this and don't just guess.
 		{
 			id: z.number(),
 			...createEntryInputSchema,
-			title: z
-				.string()
-				.nullable()
-				.optional()
-				.describe('The title of the entry')
-				.transform((value) => value ?? undefined),
-			content: z
-				.string()
-				.nullable()
-				.optional()
-				.describe('The content of the entry')
-				.transform((value) => value ?? undefined),
 		},
 		async ({ id, ...updates }) => {
 			try {
@@ -308,25 +190,11 @@ Please ask them explicitely for this and don't just guess.
 				const existingEntry = await agent.db.getEntry(user.id, id)
 				invariant(existingEntry, `Entry with ID "${id}" not found`)
 				const updatedEntry = await agent.db.updateEntry(user.id, id, updates)
-				return {
-					content: [
-						{
-							type: 'text',
-							text: `Entry "${updatedEntry.title}" (ID: ${id}) updated successfully`,
-						},
-					],
-				}
+				return createReply(
+					`Entry "${updatedEntry.title}" (ID: ${id}) updated successfully`,
+				)
 			} catch (error) {
-				console.error('Failed to update entry:', error)
-				return {
-					isError: true,
-					content: [
-						{
-							type: 'text',
-							text: `Failed to update entry: ${getErrorMessage(error)}`,
-						},
-					],
-				}
+				return createErrorReply(error)
 			}
 		},
 	)
@@ -343,25 +211,11 @@ Please ask them explicitely for this and don't just guess.
 				const existingEntry = await agent.db.getEntry(user.id, id)
 				invariant(existingEntry, `Entry with ID "${id}" not found`)
 				await agent.db.deleteEntry(user.id, id)
-				return {
-					content: [
-						{
-							type: 'text',
-							text: `Entry "${existingEntry.title}" (ID: ${id}) deleted successfully`,
-						},
-					],
-				}
+				return createReply(
+					`Entry "${existingEntry.title}" (ID: ${id}) deleted successfully`,
+				)
 			} catch (error) {
-				console.error('Failed to delete entry:', error)
-				return {
-					isError: true,
-					content: [
-						{
-							type: 'text',
-							text: `Failed to delete entry: ${getErrorMessage(error)}`,
-						},
-					],
-				}
+				return createErrorReply(error)
 			}
 		},
 	)
@@ -375,25 +229,11 @@ Please ask them explicitely for this and don't just guess.
 			try {
 				const user = await requireUser()
 				const createdTag = await agent.db.createTag(user.id, tag)
-				return {
-					content: [
-						{
-							type: 'text',
-							text: `Tag "${createdTag.name}" created successfully with ID "${createdTag.id}"`,
-						},
-					],
-				}
+				return createReply(
+					`Tag "${createdTag.name}" created successfully with ID "${createdTag.id}"`,
+				)
 			} catch (error) {
-				console.error('Failed to create tag:', error)
-				return {
-					isError: true,
-					content: [
-						{
-							type: 'text',
-							text: `Failed to create tag: ${getErrorMessage(error)}`,
-						},
-					],
-				}
+				return createErrorReply(error)
 			}
 		},
 	)
@@ -409,36 +249,20 @@ Please ask them explicitely for this and don't just guess.
 				const user = await requireUser()
 				const tag = await agent.db.getTag(user.id, id)
 				invariant(tag, `Tag ID "${id}" not found`)
-				return {
-					content: [{ type: 'text', text: JSON.stringify(tag, null, 2) }],
-				}
+				return createReply(tag)
 			} catch (error) {
-				console.error('Failed to get tag:', error)
-				return {
-					isError: true,
-					content: [
-						{
-							type: 'text',
-							text: `Failed to get tag: ${getErrorMessage(error)}`,
-						},
-					],
-				}
+				return createErrorReply(error)
 			}
 		},
 	)
 
 	agent.server.tool('list_tags', 'List all tags', async () => {
 		try {
-			const tags = await agent.db.listTags()
-			return {
-				content: [{ type: 'text', text: JSON.stringify(tags, null, 2) }],
-			}
+			const user = await requireUser()
+			const tags = await agent.db.listTags(user.id)
+			return createReply(tags)
 		} catch (error) {
-			console.error('Failed to list tags:', error)
-			return {
-				isError: true,
-				content: [{ type: 'text', text: 'Failed to list tags' }],
-			}
+			return createErrorReply(error)
 		}
 	})
 
@@ -460,25 +284,11 @@ Please ask them explicitely for this and don't just guess.
 				const existingTag = await agent.db.getTag(user.id, id)
 				invariant(existingTag, `Tag with ID "${id}" not found`)
 				const updatedTag = await agent.db.updateTag(user.id, id, updates)
-				return {
-					content: [
-						{
-							type: 'text',
-							text: `Tag "${updatedTag.name}" (ID: ${id}) updated successfully`,
-						},
-					],
-				}
+				return createReply(
+					`Tag "${updatedTag.name}" (ID: ${id}) updated successfully`,
+				)
 			} catch (error) {
-				console.error('Failed to update tag:', error)
-				return {
-					isError: true,
-					content: [
-						{
-							type: 'text',
-							text: `Failed to update tag: ${getErrorMessage(error)}`,
-						},
-					],
-				}
+				return createErrorReply(error)
 			}
 		},
 	)
@@ -495,25 +305,11 @@ Please ask them explicitely for this and don't just guess.
 				const existingTag = await agent.db.getTag(user.id, id)
 				invariant(existingTag, `Tag ID "${id}" not found`)
 				await agent.db.deleteTag(user.id, id)
-				return {
-					content: [
-						{
-							type: 'text',
-							text: `Tag "${existingTag.name}" (ID: ${id}) deleted successfully`,
-						},
-					],
-				}
+				return createReply(
+					`Tag "${existingTag.name}" (ID: ${id}) deleted successfully`,
+				)
 			} catch (error) {
-				console.error('Failed to delete tag:', error)
-				return {
-					isError: true,
-					content: [
-						{
-							type: 'text',
-							text: `Failed to delete tag: ${getErrorMessage(error)}`,
-						},
-					],
-				}
+				return createErrorReply(error)
 			}
 		},
 	)
@@ -537,25 +333,11 @@ Please ask them explicitely for this and don't just guess.
 					entryId,
 					tagId,
 				})
-				return {
-					content: [
-						{
-							type: 'text',
-							text: `Tag "${tag.name}" (ID: ${entryTag.tagId}) added to entry "${entry.title}" (ID: ${entryTag.entryId}) successfully`,
-						},
-					],
-				}
+				return createReply(
+					`Tag "${tag.name}" (ID: ${entryTag.tagId}) added to entry "${entry.title}" (ID: ${entryTag.entryId}) successfully`,
+				)
 			} catch (error) {
-				console.error('Failed to add tag to entry:', error)
-				return {
-					isError: true,
-					content: [
-						{
-							type: 'text',
-							text: `Failed to add tag to entry: ${getErrorMessage(error)}`,
-						},
-					],
-				}
+				return createErrorReply(error)
 			}
 		},
 	)
@@ -572,38 +354,50 @@ Please ask them explicitely for this and don't just guess.
 				const entry = await agent.db.getEntry(user.id, entryId)
 				invariant(entry, `Entry with ID "${entryId}" not found`)
 				const tags = await agent.db.getEntryTags(user.id, entryId)
-				return {
-					content: [
-						{
-							type: 'text',
-							text: `Tags for entry "${entry.title}" (ID: ${entryId}): ${JSON.stringify(tags, null, 2)}`,
-						},
-					],
-				}
+				return createReply(tags)
 			} catch (error) {
-				console.error('Failed to get entry tags:', error)
-				return {
-					isError: true,
-					content: [
-						{
-							type: 'text',
-							text: `Failed to get entry tags: ${getErrorMessage(error)}`,
-						},
-					],
-				}
+				return createErrorReply(error)
 			}
 		},
 	)
 
+	async function requireGrantId() {
+		const { grantId } = agent.props
+		invariant(grantId, 'You must be logged in to perform this action')
+		const grant = await agent.db.getGrant(grantId)
+		invariant(
+			grant,
+			'The given grant is invalid (no matching grant in the database)',
+		)
+		return grant
+	}
+
 	async function requireUser() {
-		const { accessToken: accessToken } = agent.props
-		invariant(accessToken, 'You must be logged in to perform this action')
-		await agent.db.createAccessTokenIfNecessary(accessToken)
-		const user = await agent.db.getUserByToken(accessToken)
+		const { grantId } = agent.props
+		invariant(grantId, 'You must be logged in to perform this action')
+		const user = await agent.db.getUserByGrantId(grantId)
 		invariant(
 			user,
-			`No user found with the given accessToken. Please claim the token by invoking the "authenticate" tool.`,
+			`No user found with the given grantId. Please claim the grant by invoking the "authenticate" tool.`,
 		)
 		return user
+	}
+
+	function createErrorReply(error: unknown): CallToolResult {
+		console.error(`Failed running tool:\n`, error)
+		return {
+			isError: true,
+			content: [{ type: 'text', text: getErrorMessage(error) }],
+		}
+	}
+
+	function createReply(text: any): CallToolResult {
+		if (typeof text === 'string') {
+			return { content: [{ type: 'text', text }] }
+		} else {
+			return {
+				content: [{ type: 'text', text: JSON.stringify(text, null, 2) }],
+			}
+		}
 	}
 }

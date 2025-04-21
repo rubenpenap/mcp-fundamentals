@@ -18,6 +18,23 @@ export const userSchema = z.object({
 	updatedAt: timestampSchema,
 })
 
+export const grantSchema = z.object({
+	id: z.coerce.number(),
+	grantUserId: z.string(),
+	userId: z.coerce.number().optional(),
+	createdAt: timestampSchema,
+	updatedAt: timestampSchema,
+})
+
+export const validationTokenSchema = z.object({
+	id: z.coerce.number(),
+	tokenValue: z.string(),
+	email: z.string().email(),
+	accessTokenId: z.coerce.number(),
+	createdAt: timestampSchema,
+	updatedAt: timestampSchema,
+})
+
 // Schema Validation
 export const entrySchema = z.object({
 	id: z.coerce.number(),
