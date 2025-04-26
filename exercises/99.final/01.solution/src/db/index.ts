@@ -27,7 +27,10 @@ export type { Entry, NewEntry, Tag, NewTag, EntryTag, NewEntryTag }
 // methods that require a userId to that... maybe
 
 export class DB {
-	constructor(private db: D1Database) {}
+	#db: D1Database
+	constructor(db: D1Database) {
+		this.#db = db
+	}
 
 	static async getInstance(env: Env) {
 		const db = new DB(env.EPIC_ME_DB)
@@ -36,7 +39,7 @@ export class DB {
 	}
 
 	async createUnclaimedGrant(grantUserId: string) {
-		const insertResult = await this.db
+		const insertResult = await this.#db
 			.prepare(sql`INSERT INTO grants (grant_user_id) VALUES (?1)`)
 			.bind(grantUserId)
 			.run()
@@ -49,15 +52,13 @@ export class DB {
 	}
 
 	async getUserByGrantId(grantId: string) {
-		// TODO: I don't have internet, so turn this into a single query when I do...
-		// also add TAKE 1 or whatever
-		const grantsResult = await this.db
-			.prepare(sql`SELECT user_id FROM grants WHERE id = ?1`)
+		const grantsResult = await this.#db
+			.prepare(sql`SELECT user_id FROM grants WHERE id = ?1 LIMIT 1`)
 			.bind(grantId)
 			.first()
 		if (!grantsResult) return null
 
-		const userResult = await this.db
+		const userResult = await this.#db
 			.prepare(sql`SELECT * FROM users WHERE id = ?1`)
 			.bind(grantsResult.user_id)
 			.first()
@@ -67,7 +68,7 @@ export class DB {
 	}
 
 	async getUserByEmail(email: string) {
-		const userResult = await this.db
+		const userResult = await this.#db
 			.prepare(sql`SELECT * FROM users WHERE email = ?1`)
 			.bind(email)
 			.first()
@@ -77,7 +78,7 @@ export class DB {
 	}
 
 	async getGrant(grantId: string) {
-		const grantResult = await this.db
+		const grantResult = await this.#db
 			.prepare(sql`SELECT * FROM grants WHERE id = ?1`)
 			.bind(grantId)
 			.first()
@@ -91,7 +92,7 @@ export class DB {
 		grantId: number,
 		validationToken: string,
 	) {
-		const insertResult = await this.db
+		const insertResult = await this.#db
 			.prepare(
 				sql`
 					INSERT INTO validation_tokens (email, grant_id, token_value)
@@ -111,7 +112,7 @@ export class DB {
 	}
 
 	async validateTokenToGrant(grantId: number, validationToken: string) {
-		const validationResult = await this.db
+		const validationResult = await this.#db
 			.prepare(
 				sql`
 					SELECT id, email, grant_id FROM validation_tokens
@@ -125,7 +126,7 @@ export class DB {
 		if (!validationResult) {
 			throw new Error('Invalid validation token')
 		}
-		const userResult = await this.db
+		const userResult = await this.#db
 			.prepare(
 				sql`
 					SELECT id FROM users
@@ -145,7 +146,7 @@ export class DB {
 		}
 
 		// set grant to user id
-		const claimGrantResult = await this.db
+		const claimGrantResult = await this.#db
 			.prepare(
 				sql`
 					UPDATE grants
@@ -162,36 +163,41 @@ export class DB {
 
 		// delete validation token (fire and forget)
 		// TODO: I think there's a more appropriate way to do this in a worker...
-		void this.db
+		void this.#db
 			.prepare(sql`DELETE FROM validation_tokens WHERE id = ?1`)
 			.bind(validationResult.id)
 			.run()
 
-		return {
-			id: userId,
-			email: validationResult.email,
-		}
+		return z
+			.object({
+				id: z.number(),
+				email: z.string(),
+			})
+			.parse({
+				id: userId,
+				email: validationResult.email,
+			})
 	}
 
-	async deleteGrant(userId: number, grantId: string) {
-		const deleteResult = await this.db
+	async unclaimGrant(userId: number, grantId: string) {
+		const unclaimResult = await this.#db
 			.prepare(
 				sql`
-					DELETE FROM grants
-					WHERE user_id = ?1 AND grant_user_id = ?2
+					UPDATE grants
+					SET user_id = NULL
+					WHERE user_id = ?1 AND id = ?2
 				`,
 			)
 			.bind(userId, grantId)
 			.run()
 
-		if (!deleteResult.success) {
-			throw new Error('Failed to delete grant: ' + deleteResult.error)
+		if (!unclaimResult.success) {
+			throw new Error('Failed to unclaim grant: ' + unclaimResult.error)
 		}
-		// TODO: delete the grant from OAUTH_PROVIDER as well
 	}
 
 	async createUserByEmail(email: string) {
-		const ps = this.db.prepare(sql`
+		const ps = this.#db.prepare(sql`
 			INSERT INTO users (email)
 			VALUES (?1)
 		`)
@@ -212,7 +218,7 @@ export class DB {
 	}
 
 	async getUserById(id: number) {
-		const userResult = await this.db
+		const userResult = await this.#db
 			.prepare(sql`SELECT * FROM users WHERE id = ?1`)
 			.bind(id)
 			.first()
@@ -226,7 +232,7 @@ export class DB {
 		// Validate input
 		const validatedEntry = newEntrySchema.parse(entry)
 
-		const ps = this.db.prepare(sql`
+		const ps = this.#db.prepare(sql`
 			INSERT INTO entries (
 				user_id, title, content, mood, location, weather,
 				is_private, is_favorite
@@ -266,7 +272,7 @@ export class DB {
 	}
 
 	async getEntry(userId: number, id: number) {
-		const entryResult = await this.db
+		const entryResult = await this.#db
 			.prepare(sql`SELECT * FROM entries WHERE id = ?1 AND user_id = ?2`)
 			.bind(id, userId)
 			.first()
@@ -276,7 +282,7 @@ export class DB {
 		const entry = entrySchema.parse(snakeToCamel(entryResult))
 
 		// Get tags for this entry
-		const tagsResult = await this.db
+		const tagsResult = await this.#db
 			.prepare(
 				sql`
 					SELECT t.id, t.name
@@ -304,14 +310,14 @@ export class DB {
 		}
 	}
 
-	async listEntries(userId: number, tagIds?: number[]) {
+	async listEntries(userId: number, tagIds?: Array<number>) {
 		const queryParts = [
 			sql`SELECT DISTINCT e.*, COUNT(et.id) as tag_count`,
 			sql`FROM entries e`,
 			sql`LEFT JOIN entry_tags et ON e.id = et.entry_id`,
 			sql`WHERE e.user_id = ?1`,
 		]
-		const params: number[] = [userId]
+		const params: Array<number> = [userId]
 
 		if (tagIds && tagIds.length > 0) {
 			queryParts.push(sql`AND EXISTS (
@@ -325,7 +331,7 @@ export class DB {
 		queryParts.push(sql`GROUP BY e.id`, sql`ORDER BY e.created_at DESC`)
 
 		const query = queryParts.join(' ')
-		const results = await this.db
+		const results = await this.#db
 			.prepare(query)
 			.bind(...params)
 			.all()
@@ -370,7 +376,7 @@ export class DB {
 			return existingEntry
 		}
 
-		const ps = this.db.prepare(sql`
+		const ps = this.#db.prepare(sql`
 			UPDATE entries 
 			SET ${updates}, updated_at = CURRENT_TIMESTAMP 
 			WHERE id = ?1 AND user_id = ?2
@@ -404,7 +410,7 @@ export class DB {
 			throw new Error(`Entry with ID ${id} not found`)
 		}
 
-		const deleteResult = await this.db
+		const deleteResult = await this.#db
 			.prepare(sql`DELETE FROM entries WHERE id = ?1 AND user_id = ?2`)
 			.bind(id, userId)
 			.run()
@@ -420,7 +426,7 @@ export class DB {
 	async createTag(userId: number, tag: NewTag) {
 		const validatedTag = newTagSchema.parse(tag)
 
-		const ps = this.db.prepare(sql`
+		const ps = this.#db.prepare(sql`
 			INSERT INTO tags (name, description, user_id)
 			VALUES (?1, ?2, ?3)
 		`)
@@ -442,7 +448,7 @@ export class DB {
 	}
 
 	async getTag(userId: number, id: number) {
-		const result = await this.db
+		const result = await this.#db
 			.prepare(sql`SELECT * FROM tags WHERE id = ?1 AND user_id = ?2`)
 			.bind(id, userId)
 			.first()
@@ -453,7 +459,7 @@ export class DB {
 	}
 
 	async listTags(userId: number) {
-		const results = await this.db
+		const results = await this.#db
 			.prepare(
 				sql`
 				SELECT id, name 
@@ -494,7 +500,7 @@ export class DB {
 			return existingTag
 		}
 
-		const ps = this.db.prepare(sql`
+		const ps = this.#db.prepare(sql`
 			UPDATE tags
 			SET ${updates}, updated_at = CURRENT_TIMESTAMP
 			WHERE id = ?1 AND user_id = ?2
@@ -528,7 +534,7 @@ export class DB {
 			throw new Error(`Tag with ID ${id} not found`)
 		}
 
-		const deleteResult = await this.db
+		const deleteResult = await this.#db
 			.prepare(sql`DELETE FROM tags WHERE id = ?1 AND user_id = ?2`)
 			.bind(id, userId)
 			.run()
@@ -550,7 +556,7 @@ export class DB {
 			throw new Error(`Entry with ID ${validatedEntryTag.entryId} not found`)
 		}
 
-		const ps = this.db.prepare(sql`
+		const ps = this.#db.prepare(sql`
 			INSERT INTO entry_tags (entry_id, tag_id, user_id)
 			VALUES (?1, ?2, ?3)
 		`)
@@ -575,7 +581,7 @@ export class DB {
 	}
 
 	async getEntryTag(userId: number, id: number) {
-		const result = await this.db
+		const result = await this.#db
 			.prepare(sql`SELECT * FROM entry_tags WHERE id = ?1 AND user_id = ?2`)
 			.bind(id, userId)
 			.first()
@@ -592,7 +598,7 @@ export class DB {
 			throw new Error(`Entry with ID ${entryId} not found`)
 		}
 
-		const results = await this.db
+		const results = await this.#db
 			.prepare(
 				sql`
 					SELECT t.* 
