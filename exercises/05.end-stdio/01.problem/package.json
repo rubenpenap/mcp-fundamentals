@@ -1,11 +1,9 @@
 {
-  "name": "exercises_01.start_01.problem",
+  "name": "exercises_05.end-stdio_01.problem",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "tsx src/index.ts",
-    "test": "tsx src/index.test.ts",
-    "test:watch": "tsx --watch-path=src src/index.test.ts",
     "typecheck": "tsc",
     "inspect": "mcp-inspector"
   },

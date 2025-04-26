@@ -1,43 +1,29 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
-import { DB } from './db'
-import { initializeTools } from './tools.ts'
+// 💰 you're gonna want these imports
+// import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+// import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
+// import { z } from 'zod'
 
-export class EpicMeMCP {
-	db: DB
-	server = new McpServer(
-		{
-			name: 'EpicMe',
-			version: '1.0.0',
-		},
-		{
-			capabilities: {
-				tools: {},
-			},
-			instructions: `
-EpicMe is a journaling app that allows users to write about and review their experiences, thoughts, and reflections.
+// 🐨 create a new McpServer
+// - it should have a name of 'EpicMath' and a version of '1.0.0'
+// - it should have a capabilities object with a tools property that is an empty object
+// - it should have instructions for the LLM to know what this server can be used to do
 
-These tools are the user's window into their journal. With these tools and your help, they can create, read, and manage their journal entries and associated tags.
-
-You can also help users add tags to their entries and get all tags for an entry.
-			`.trim(),
-		},
-	)
-
-	constructor(path: string) {
-		this.db = DB.getInstance(path)
-	}
-	async init() {
-		await initializeTools(this)
-	}
-}
+// 🐨 add a tool to the server with the server.tool API
+// - it should be named 'add'
+// - it should have a description explaining what it can be used to do
+// - provide an input schema object with two properties which are validated with zod (give them descriptions as well):
+//   - firstNumber: a number
+//   - secondNumber: a number
+// - it should return a standard text response with the sum of the two numbers
 
 async function main() {
-	const agent = new EpicMeMCP('./db.sqlite')
-	await agent.init()
-	const transport = new StdioServerTransport()
-	await agent.server.connect(transport)
-	console.error('EpicMe MCP Server running on stdio')
+	// 🐨 create a new StdioServerTransport
+	// 🐨 connect the server to the transport
+
+	// 🐨 add a log (using console.error) to the console to let the user know the server is running
+
+	// 💣 you can delete this once you're done
+	throw new Error('Not implemented')
 }
 
 main().catch((error) => {
