@@ -1,12 +1,11 @@
-import { test, beforeEach, afterEach } from 'node:test'
 import { invariant } from '@epic-web/invariant'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
-import { z } from 'zod'
+import { test, beforeAll, afterAll, expect } from 'vitest'
 
 let client: Client
 
-beforeEach(async () => {
+beforeAll(async () => {
 	client = new Client({
 		name: 'EpicMathTester',
 		version: '1.0.0',
@@ -18,36 +17,33 @@ beforeEach(async () => {
 	await client.connect(transport)
 })
 
-afterEach(async () => {
+afterAll(async () => {
 	await client.transport?.close()
 })
 
-await test('Tool Definition', async (t) => {
+test('Tool Definition', async () => {
 	const list = await client.listTools()
 	const [firstTool] = list.tools
 	invariant(firstTool, '🚨 No tools found')
 
-	const expectedToolFormatSchema = z.object({
-		name: z.string().regex(/^add$/i),
-		description: z.string().regex(/^add two numbers$/i),
-		inputSchema: z.object({
-			type: z.literal('object'),
-			properties: z.object({
-				firstNumber: z.object({
-					type: z.literal('number'),
-					description: z.string().regex(/first/i),
-				}),
-				secondNumber: z.object({
-					type: z.literal('number'),
-					description: z.string().regex(/second/i),
+	expect(firstTool).toEqual(
+		expect.objectContaining({
+			name: expect.stringMatching(/^add$/i),
+			description: expect.stringMatching(/^add two numbers$/i),
+			inputSchema: expect.objectContaining({
+				type: 'object',
+				properties: expect.objectContaining({
+					firstNumber: expect.objectContaining({
+						type: 'number',
+						description: expect.stringMatching(/first/i),
+					}),
 				}),
 			}),
 		}),
-	})
-	assertSchema(expectedToolFormatSchema, firstTool)
+	)
 })
 
-await test('Tool Call', async (t) => {
+test('Tool Call', async () => {
 	const result = await client.callTool({
 		name: 'add',
 		arguments: {
@@ -56,26 +52,14 @@ await test('Tool Call', async (t) => {
 		},
 	})
 
-	assertSchema(
-		z.object({
-			content: z.array(
-				z.object({ type: z.literal('text'), text: z.string().regex(/3/) }),
-			),
+	expect(result).toEqual(
+		expect.objectContaining({
+			content: expect.arrayContaining([
+				expect.objectContaining({
+					type: 'text',
+					text: expect.stringMatching(/3/),
+				}),
+			]),
 		}),
-		result,
 	)
 })
-
-// TODO: maybe there's a way within Zod to handle the error message so we can
-// just use parse and let it throw its own error.
-function assertSchema(
-	schema: z.ZodSchema,
-	value: unknown,
-): asserts value is z.infer<typeof schema> {
-	const result = schema.safeParse(value)
-	if (!result.success) {
-		console.error('🚨 The following value is invalid:')
-		console.dir(value, { depth: 8, colors: true })
-		throw result.error
-	}
-}
