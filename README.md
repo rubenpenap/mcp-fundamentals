@@ -42,7 +42,8 @@
 Here are some resources you can read before taking the workshop to get you up to
 speed on some of the tools and concepts we'll be covering:
 
-- TODO: add resources
+- [Letting AI Interface with Your App with MCPs](https://www.epicai.pro/letting-ai-interface-with-your-app-with-mcps-talk)
+- [MCP Introduction](https://modelcontextprotocol.io/introduction)
 
 ## System Requirements
 
