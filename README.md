@@ -34,7 +34,7 @@
 
 ## Prerequisites
 
-- JavaScript experience
+- JavaScript/TypeScript experience
 - Node.js experience
 
 ## Pre-workshop Resources
