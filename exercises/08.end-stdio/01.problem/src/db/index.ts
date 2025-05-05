@@ -30,7 +30,7 @@ export class DB {
 	}
 
 	// Entry Methods
-	createEntry(entry: z.input<typeof newEntrySchema>) {
+	async createEntry(entry: z.input<typeof newEntrySchema>) {
 		const validatedEntry = newEntrySchema.parse(entry)
 		const stmt = this.#db.prepare(sql`
 			INSERT INTO entries (
@@ -56,14 +56,14 @@ export class DB {
 		if (!id) {
 			throw new Error('Failed to create entry')
 		}
-		const createdEntry = this.getEntry(id)
+		const createdEntry = await this.getEntry(id)
 		if (!createdEntry) {
 			throw new Error('Failed to query created entry')
 		}
 		return createdEntry
 	}
 
-	getEntry(id: number) {
+	async getEntry(id: number) {
 		const stmt = this.#db.prepare(sql`SELECT * FROM entries WHERE id = ?`)
 		const entryResult = stmt.get(id)
 		if (!entryResult) return null
@@ -83,7 +83,7 @@ export class DB {
 	}
 
 	// TODO: listEntries to actually filter by tagIds
-	listEntries(tagIds?: Array<number>) {
+	async listEntries(tagIds?: Array<number>) {
 		const stmt = this.#db.prepare(
 			sql`SELECT * FROM entries ORDER BY created_at DESC`,
 		)
@@ -93,8 +93,11 @@ export class DB {
 			.parse(results.map((result: any) => snakeToCamel(result)))
 	}
 
-	updateEntry(id: number, entry: Partial<z.input<typeof newEntrySchema>>) {
-		const existingEntry = this.getEntry(id)
+	async updateEntry(
+		id: number,
+		entry: Partial<z.input<typeof newEntrySchema>>,
+	) {
+		const existingEntry = await this.getEntry(id)
 		if (!existingEntry) {
 			throw new Error(`Entry with ID ${id} not found`)
 		}
@@ -123,15 +126,15 @@ export class DB {
 		if (!result.changes) {
 			throw new Error('Failed to update entry')
 		}
-		const updatedEntry = this.getEntry(id)
+		const updatedEntry = await this.getEntry(id)
 		if (!updatedEntry) {
 			throw new Error('Failed to query updated entry')
 		}
 		return updatedEntry
 	}
 
-	deleteEntry(id: number) {
-		const existingEntry = this.getEntry(id)
+	async deleteEntry(id: number) {
+		const existingEntry = await this.getEntry(id)
 		if (!existingEntry) {
 			throw new Error(`Entry with ID ${id} not found`)
 		}
@@ -144,7 +147,7 @@ export class DB {
 	}
 
 	// Tag Methods
-	createTag(tag: NewTag) {
+	async createTag(tag: NewTag) {
 		const validatedTag = newTagSchema.parse(tag)
 		const stmt = this.#db.prepare(sql`
 			INSERT INTO tags (name, description)
@@ -158,21 +161,21 @@ export class DB {
 		if (!id) {
 			throw new Error('Failed to create tag')
 		}
-		const createdTag = this.getTag(id)
+		const createdTag = await this.getTag(id)
 		if (!createdTag) {
 			throw new Error('Failed to query created tag')
 		}
 		return createdTag
 	}
 
-	getTag(id: number) {
+	async getTag(id: number) {
 		const stmt = this.#db.prepare(sql`SELECT * FROM tags WHERE id = ?`)
 		const result = stmt.get(id)
 		if (!result) return null
 		return tagSchema.parse(snakeToCamel(result))
 	}
 
-	listTags() {
+	async listTags() {
 		const stmt = this.#db.prepare(sql`SELECT id, name FROM tags ORDER BY name`)
 		const results = stmt.all()
 		return z
@@ -180,8 +183,8 @@ export class DB {
 			.parse(results.map((result: any) => snakeToCamel(result)))
 	}
 
-	updateTag(id: number, tag: Partial<z.input<typeof newTagSchema>>) {
-		const existingTag = this.getTag(id)
+	async updateTag(id: number, tag: Partial<z.input<typeof newTagSchema>>) {
+		const existingTag = await this.getTag(id)
 		if (!existingTag) {
 			throw new Error(`Tag with ID ${id} not found`)
 		}
@@ -210,15 +213,15 @@ export class DB {
 		if (!result.changes) {
 			throw new Error('Failed to update tag')
 		}
-		const updatedTag = this.getTag(id)
+		const updatedTag = await this.getTag(id)
 		if (!updatedTag) {
 			throw new Error('Failed to query updated tag')
 		}
 		return updatedTag
 	}
 
-	deleteTag(id: number) {
-		const existingTag = this.getTag(id)
+	async deleteTag(id: number) {
+		const existingTag = await this.getTag(id)
 		if (!existingTag) {
 			throw new Error(`Tag with ID ${id} not found`)
 		}
@@ -231,12 +234,12 @@ export class DB {
 	}
 
 	// Entry Tag Methods
-	addTagToEntry({ entryId, tagId }: { entryId: number; tagId: number }) {
-		const entry = this.getEntry(entryId)
+	async addTagToEntry({ entryId, tagId }: { entryId: number; tagId: number }) {
+		const entry = await this.getEntry(entryId)
 		if (!entry) {
 			throw new Error(`Entry with ID ${entryId} not found`)
 		}
-		const tag = this.getTag(tagId)
+		const tag = await this.getTag(tagId)
 		if (!tag) {
 			throw new Error(`Tag with ID ${tagId} not found`)
 		}
@@ -252,22 +255,22 @@ export class DB {
 		if (id === undefined) {
 			throw new Error('Failed to add tag to entry')
 		}
-		const created = this.getEntryTag(id)
+		const created = await this.getEntryTag(id)
 		if (!created) {
 			throw new Error('Failed to query created entry tag')
 		}
 		return created
 	}
 
-	getEntryTag(id: number) {
+	async getEntryTag(id: number) {
 		const stmt = this.#db.prepare(sql`SELECT * FROM entry_tags WHERE id = ?`)
 		const result = stmt.get(id)
 		if (!result) return null
 		return entryTagSchema.parse(snakeToCamel(result))
 	}
 
-	getEntryTags(entryId: number) {
-		const entry = this.getEntry(entryId)
+	async getEntryTags(entryId: number) {
+		const entry = await this.getEntry(entryId)
 		if (!entry) {
 			throw new Error(`Entry with ID ${entryId} not found`)
 		}

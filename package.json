@@ -9,6 +9,11 @@
       "name": "Kent C. Dodds",
       "avatar": "/images/instructor.png",
       "𝕏": "kentcdodds"
+    },
+    "product": {
+      "host": "www.epicai.pro",
+      "displayName": "EpicAI.pro",
+      "displayNameShort": "Epic AI"
     }
   },
   "type": "module",
@@ -34,7 +39,8 @@
   "license": "GPL-3.0-only",
   "workspaces": [
     "exercises/*/*",
-    "examples/*"
+    "examples/*",
+    "epicshop/mcp-dev"
   ],
   "engines": {
     "node": "^18.19.0 || >=20.5.0",
