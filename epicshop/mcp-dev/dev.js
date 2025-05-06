@@ -68,6 +68,10 @@ const server = createServer((req, res) => {
 		url.searchParams.set('transport', transport)
 		url.searchParams.set('serverCommand', command)
 		url.searchParams.set('serverArgs', args)
+		url.searchParams.set(
+			'MCP_PROXY_FULL_ADDRESS',
+			`http://localhost:${serverPort}`,
+		)
 		const correctedUrl = url.pathname + url.search
 		if (correctedUrl !== req.url) {
 			res.writeHead(302, { Location: correctedUrl })
