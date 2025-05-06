@@ -32,7 +32,7 @@ server.tool(
 		description: z.string().optional().describe('The description of the tag'),
 	},
 	async (tag) => {
-		const createdTag = db.createTag(tag)
+		const createdTag = await db.createTag(tag)
 		return {
 			content: [
 				{

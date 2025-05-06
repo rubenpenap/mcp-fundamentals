@@ -29,7 +29,7 @@ export async function initializeResources(agent: EpicMeMCP) {
 		'entry',
 		new ResourceTemplate('entry://{id}', {
 			list: async () => {
-				const entries = agent.db.getEntries()
+				const entries = await agent.db.getEntries()
 				return {
 					resources: entries.map((entry) => ({
 						name: entry.title,
@@ -42,7 +42,7 @@ export async function initializeResources(agent: EpicMeMCP) {
 		{ description: 'A single entry' },
 		async (uri, { id }) => {
 			try {
-				const entry = agent.db.getEntry(Number(id))
+				const entry = await agent.db.getEntry(Number(id))
 				invariant(entry, `Entry with ID "${id}" not found`)
 				return {
 					contents: [
@@ -63,7 +63,7 @@ export async function initializeResources(agent: EpicMeMCP) {
 		'tag',
 		new ResourceTemplate('tag://{id}', {
 			list: async () => {
-				const tags = agent.db.getTags()
+				const tags = await agent.db.getTags()
 				return {
 					resources: tags.map((tag) => ({
 						name: tag.name,
@@ -76,7 +76,7 @@ export async function initializeResources(agent: EpicMeMCP) {
 		{ description: 'A single tag' },
 		async (uri, { id }) => {
 			try {
-				const tag = agent.db.getTag(Number(id))
+				const tag = await agent.db.getTag(Number(id))
 				invariant(tag, `Tag with ID "${id}" not found`)
 				return {
 					contents: [

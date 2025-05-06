@@ -10,7 +10,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 			description: z.string().optional().describe('The description of the tag'),
 		},
 		async (tag) => {
-			const createdTag = agent.db.createTag(tag)
+			const createdTag = await agent.db.createTag(tag)
 			return {
 				content: [
 					{

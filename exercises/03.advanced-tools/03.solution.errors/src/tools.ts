@@ -12,7 +12,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 		async (tag) => {
 			try {
-				const createdTag = agent.db.createTag(tag)
+				const createdTag = await agent.db.createTag(tag)
 				return {
 					content: [
 						{

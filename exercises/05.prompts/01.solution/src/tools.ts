@@ -56,10 +56,10 @@ export async function initializeTools(agent: EpicMeMCP) {
 		createEntryInputSchema,
 		async (entry) => {
 			try {
-				const createdEntry = agent.db.createEntry(entry)
+				const createdEntry = await agent.db.createEntry(entry)
 				if (entry.tags) {
 					for (const tagId of entry.tags) {
-						agent.db.addTagToEntry({
+						await agent.db.addTagToEntry({
 							entryId: createdEntry.id,
 							tagId,
 						})
@@ -82,7 +82,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 		async ({ id }) => {
 			try {
-				const entry = agent.db.getEntry(id)
+				const entry = await agent.db.getEntry(id)
 				invariant(entry, `Entry with ID "${id}" not found`)
 				return createReply(entry)
 			} catch (error) {
@@ -102,7 +102,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 		async ({ tagIds }) => {
 			try {
-				const entries = agent.db.listEntries(tagIds)
+				const entries = await agent.db.listEntries(tagIds)
 				return createReply(entries)
 			} catch (error) {
 				return createErrorReply(error)
@@ -151,9 +151,9 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 		async ({ id, ...updates }) => {
 			try {
-				const existingEntry = agent.db.getEntry(id)
+				const existingEntry = await agent.db.getEntry(id)
 				invariant(existingEntry, `Entry with ID "${id}" not found`)
-				const updatedEntry = agent.db.updateEntry(id, updates)
+				const updatedEntry = await agent.db.updateEntry(id, updates)
 				return createReply(
 					`Entry "${updatedEntry.title}" (ID: ${id}) updated successfully`,
 				)
@@ -171,9 +171,9 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 		async ({ id }) => {
 			try {
-				const existingEntry = agent.db.getEntry(id)
+				const existingEntry = await agent.db.getEntry(id)
 				invariant(existingEntry, `Entry with ID "${id}" not found`)
-				agent.db.deleteEntry(id)
+				await agent.db.deleteEntry(id)
 				return createReply(
 					`Entry "${existingEntry.title}" (ID: ${id}) deleted successfully`,
 				)
@@ -190,7 +190,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 		createTagInputSchema,
 		async (tag) => {
 			try {
-				const createdTag = agent.db.createTag(tag)
+				const createdTag = await agent.db.createTag(tag)
 				return createReply(
 					`Tag "${createdTag.name}" created successfully with ID "${createdTag.id}"`,
 				)
@@ -208,7 +208,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 		async ({ id }) => {
 			try {
-				const tag = agent.db.getTag(id)
+				const tag = await agent.db.getTag(id)
 				invariant(tag, `Tag ID "${id}" not found`)
 				return createReply(tag)
 			} catch (error) {
@@ -219,7 +219,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 
 	agent.server.tool('list_tags', 'List all tags', async () => {
 		try {
-			const tags = agent.db.listTags()
+			const tags = await agent.db.listTags()
 			return createReply(tags)
 		} catch (error) {
 			return createErrorReply(error)
@@ -240,7 +240,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 		async ({ id, ...updates }) => {
 			try {
-				const updatedTag = agent.db.updateTag(id, updates)
+				const updatedTag = await agent.db.updateTag(id, updates)
 				return createReply(
 					`Tag "${updatedTag.name}" (ID: ${id}) updated successfully`,
 				)
@@ -258,9 +258,9 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 		async ({ id }) => {
 			try {
-				const existingTag = agent.db.getTag(id)
+				const existingTag = await agent.db.getTag(id)
 				invariant(existingTag, `Tag ID "${id}" not found`)
-				agent.db.deleteTag(id)
+				await agent.db.deleteTag(id)
 				return createReply(
 					`Tag "${existingTag.name}" (ID: ${id}) deleted successfully`,
 				)
@@ -280,11 +280,11 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 		async ({ entryId, tagId }) => {
 			try {
-				const tag = agent.db.getTag(tagId)
-				const entry = agent.db.getEntry(entryId)
+				const tag = await agent.db.getTag(tagId)
+				const entry = await agent.db.getEntry(entryId)
 				invariant(tag, `Tag ${tagId} not found`)
 				invariant(entry, `Entry with ID "${entryId}" not found`)
-				const entryTag = agent.db.addTagToEntry({
+				const entryTag = await agent.db.addTagToEntry({
 					entryId,
 					tagId,
 				})
