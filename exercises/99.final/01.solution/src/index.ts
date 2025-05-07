@@ -2,7 +2,7 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { McpAgent } from 'agents/mcp'
-import { DB } from './db'
+import { DB } from './db/index.ts'
 import { initializeTools } from './tools.ts'
 import { type Env } from './types'
 

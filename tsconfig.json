@@ -35,13 +35,37 @@
       "path": "exercises/03.advanced-tools/02.solution.organization"
     },
     {
-      "path": "exercises/03.advanced-tools/03.problem.errors"
+      "path": "exercises/03.advanced-tools/03.problem.class"
     },
     {
-      "path": "exercises/03.advanced-tools/03.solution.errors"
+      "path": "exercises/03.advanced-tools/03.solution.class"
     },
     {
-      "path": "exercises/04.resources/01.solution"
+      "path": "exercises/03.advanced-tools/04.problem.errors"
+    },
+    {
+      "path": "exercises/03.advanced-tools/04.solution.errors"
+    },
+    {
+      "path": "exercises/04.resources/01.problem.simple"
+    },
+    {
+      "path": "exercises/04.resources/01.solution.simple"
+    },
+    {
+      "path": "exercises/04.resources/02.problem.template"
+    },
+    {
+      "path": "exercises/04.resources/02.solution.template"
+    },
+    {
+      "path": "exercises/04.resources/03.problem.embedded"
+    },
+    {
+      "path": "exercises/04.resources/03.solution.embedded"
+    },
+    {
+      "path": "exercises/04.resources/04.solution.utils"
     },
     {
       "path": "exercises/05.prompts/01.solution"

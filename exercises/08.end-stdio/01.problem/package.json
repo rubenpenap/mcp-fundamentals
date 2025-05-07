@@ -3,7 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx src/index.ts",
+    "dev": "mcp-dev",
+    "dev:mcp": "tsx src/index.ts",
+    "test": "vitest",
     "typecheck": "tsc",
     "inspect": "mcp-inspector"
   },

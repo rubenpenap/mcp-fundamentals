@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
-import { DB } from './db'
+import { DB } from './db/index.ts'
+import { initializeResources } from './resources.ts'
 import { initializeTools } from './tools.ts'
 
 export class EpicMeMCP {
@@ -13,6 +14,7 @@ export class EpicMeMCP {
 		{
 			capabilities: {
 				tools: {},
+				resources: {},
 			},
 			instructions: `
 EpicMe is a journaling app that allows users to write about and review their experiences, thoughts, and reflections.
@@ -29,6 +31,7 @@ You can also help users add tags to their entries and get all tags for an entry.
 	}
 	async init() {
 		await initializeTools(this)
+		await initializeResources(this)
 	}
 }
 

@@ -19,7 +19,7 @@ server.tool(
 	// 🐨 update the description to indicate this adds any two numbers
 	'Add one and two',
 	// 🐨 add an object with a firstNumber and secondNumber property
-	// These should be zod schemas
+	// 📜 These should be zod schemas https://zod.dev/
 	async () => {
 		// 🐨 accept an object parameter with a firstNumber and secondNumber property
 		return {

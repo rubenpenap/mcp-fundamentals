@@ -8,13 +8,7 @@ const server = new McpServer(
 	},
 	{
 		// 🐨 add a capabilities object with a tools property that is an empty object
-		instructions: `
-EpicMe is a journaling app that allows users to write about and review their experiences, thoughts, and reflections.
-
-These tools are the user's window into their journal. With these tools and your help, they can create, read, and manage their journal entries and associated tags.
-
-You can also help users add tags to their entries and get all tags for an entry.
-		`.trim(),
+		instructions: 'This lets you solve math problems.',
 	},
 )
 

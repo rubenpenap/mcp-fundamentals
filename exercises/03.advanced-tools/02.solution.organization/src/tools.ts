@@ -1,8 +1,9 @@
+import { type McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
-import { type EpicMeMCP } from './index.ts'
+import { type DB } from './db/index.ts'
 
-export async function initializeTools(agent: EpicMeMCP) {
-	agent.server.tool(
+export async function initializeTools(server: McpServer, db: DB) {
+	server.tool(
 		'create_tag',
 		'Create a new tag',
 		{
@@ -10,7 +11,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 			description: z.string().optional().describe('The description of the tag'),
 		},
 		async (tag) => {
-			const createdTag = await agent.db.createTag(tag)
+			const createdTag = await db.createTag(tag)
 			return {
 				content: [
 					{

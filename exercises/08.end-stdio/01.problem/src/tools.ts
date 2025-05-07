@@ -1,52 +1,9 @@
 import { invariant } from '@epic-web/invariant'
 import { type CallToolResult } from '@modelcontextprotocol/sdk/types.js'
 import { z } from 'zod'
+import { createEntryInputSchema, createTagInputSchema } from './db/schema.ts'
 import { type EpicMeMCP } from './index.ts'
 import { getErrorMessage } from './utils.ts'
-
-const createEntryInputSchema = {
-	title: z.string().describe('The title of the entry'),
-	content: z.string().describe('The content of the entry'),
-	mood: z
-		.string()
-		.optional()
-		.describe(
-			'The mood of the entry (for example: "happy", "sad", "anxious", "excited")',
-		),
-	location: z
-		.string()
-		.optional()
-		.describe(
-			'The location of the entry (for example: "home", "work", "school", "park")',
-		),
-	weather: z
-		.string()
-		.optional()
-		.describe(
-			'The weather of the entry (for example: "sunny", "cloudy", "rainy", "snowy")',
-		),
-	isPrivate: z
-		.number()
-		.optional()
-		.default(1)
-		.describe('Whether the entry is private (1 for private, 0 for public)'),
-	isFavorite: z
-		.number()
-		.optional()
-		.default(0)
-		.describe(
-			'Whether the entry is a favorite (1 for favorite, 0 for not favorite)',
-		),
-	tags: z
-		.array(z.number())
-		.optional()
-		.describe('The IDs of the tags to add to the entry'),
-}
-
-const createTagInputSchema = {
-	name: z.string().describe('The name of the tag'),
-	description: z.string().optional().describe('The description of the tag'),
-}
 
 export async function initializeTools(agent: EpicMeMCP) {
 	// Entry Tools
@@ -296,22 +253,22 @@ export async function initializeTools(agent: EpicMeMCP) {
 			}
 		},
 	)
+}
 
-	function createErrorReply(error: unknown): CallToolResult {
-		console.error(`Failed running tool:\n`, error)
-		return {
-			isError: true,
-			content: [{ type: 'text', text: getErrorMessage(error) }],
-		}
+function createErrorReply(error: unknown): CallToolResult {
+	console.error(`Failed running tool:\n`, error)
+	return {
+		isError: true,
+		content: [{ type: 'text', text: getErrorMessage(error) }],
 	}
+}
 
-	function createReply(text: any): CallToolResult {
-		if (typeof text === 'string') {
-			return { content: [{ type: 'text', text }] }
-		} else {
-			return {
-				content: [{ type: 'text', text: JSON.stringify(text, null, 2) }],
-			}
+function createReply(text: any): CallToolResult {
+	if (typeof text === 'string') {
+		return { content: [{ type: 'text', text }] }
+	} else {
+		return {
+			content: [{ type: 'text', text: JSON.stringify(text, null, 2) }],
 		}
 	}
 }

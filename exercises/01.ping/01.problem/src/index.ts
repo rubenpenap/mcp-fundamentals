@@ -4,7 +4,7 @@
 
 // 🐨 create a new McpServer
 // - it should have a name of 'EpicMe' and a version of '1.0.0'
-// - it should have instructions for the LLM to know what this server can be used to do
+// - it should have instructions for the LLM to know what this server can be used to do (we'll start out by saying it can solve math problems)
 
 async function main() {
 	// 🐨 create a new StdioServerTransport

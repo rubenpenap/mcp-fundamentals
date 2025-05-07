@@ -2,6 +2,8 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod'
 import { DB } from './db/index.ts'
+// 🐨 Make tools.ts and you'll export a function called initializeTools:
+// import { initializeTools } from './tools.ts'
 
 const db = DB.getInstance('./db.sqlite')
 
@@ -24,6 +26,7 @@ You can also help users add tags to their entries and get all tags for an entry.
 	},
 )
 
+// 🐨 move this tool to a function called `initializeTools` in a separate file ./tools.ts
 server.tool(
 	'create_tag',
 	'Create a new tag',
@@ -43,6 +46,7 @@ server.tool(
 		}
 	},
 )
+// 🐨 call initializeTools with the server and db
 
 async function main() {
 	const transport = new StdioServerTransport()
