@@ -12,11 +12,11 @@ const [, , ...args] = process.argv
 const [transport] = args
 
 const serverPort = await getPort({
-	port: 10000,
+	port: Array.from({ length: 1000 }, (_, i) => i + 10000),
 	exclude: [process.env.PORT].filter(Boolean).map(Number),
 })
 const clientPort = await getPort({
-	port: 9000,
+	port: Array.from({ length: 1000 }, (_, i) => i + 9000),
 	exclude: [process.env.PORT, serverPort].filter(Boolean).map(Number),
 })
 
@@ -72,6 +72,8 @@ const server = createServer((req, res) => {
 			'MCP_PROXY_FULL_ADDRESS',
 			`http://localhost:${serverPort}`,
 		)
+		url.searchParams.set('MCP_REQUEST_MAX_TOTAL_TIMEOUT', 1000 * 60 * 15)
+		url.searchParams.set('MCP_SERVER_REQUEST_TIMEOUT', 1000 * 60 * 5)
 		const correctedUrl = url.pathname + url.search
 		if (correctedUrl !== req.url) {
 			res.writeHead(302, { Location: correctedUrl })
