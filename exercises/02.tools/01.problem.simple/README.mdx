@@ -1,1 +1,21 @@
 # Simple Tool
+
+👨‍💼 Let's get your MCP server ready to support tools! In this step, you'll:
+
+- Declare the `tools` capability on your server.
+- Register a simple tool named `add` that always returns the sum of 1 and 2
+  (hardcoded).
+
+This is your first step toward making your server interactive and extensible. No
+need to handle dynamic input yet—just get the tool registered and returning a
+static result.
+
+As a reminder, here's an example of a tool:
+
+```ts
+server.tool('hello', 'Say hello', async () => {
+	return {
+		content: [{ type: 'text', text: 'Hello, world!' }],
+	}
+})
+```

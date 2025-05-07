@@ -5,10 +5,10 @@
   ],
   "references": [
     {
-      "path": "exercises/01.ping/01.problem"
+      "path": "exercises/01.ping/01.problem.connect"
     },
     {
-      "path": "exercises/01.ping/01.solution"
+      "path": "exercises/01.ping/01.solution.connect"
     },
     {
       "path": "exercises/02.tools/01.problem.simple"

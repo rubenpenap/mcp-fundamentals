@@ -1,1 +1,35 @@
 # Arguments
+
+👨‍💼 Time to make your tool dynamic! In this step, you'll:
+
+- Update your `add` tool to accept two arguments: `firstNumber` and
+  `secondNumber`.
+- Use [Zod](https://zod.dev/) to validate these arguments.
+- Return the sum of the two numbers provided by the client.
+
+This will make your tool interactive and able to respond to user input.
+
+Here's a quick example of a tool with arguments.
+
+```ts
+import { z } from 'zod'
+
+server.tool(
+	'hello',
+	'Say hello to someone',
+	{ name: z.string().describe('The name to greet') },
+	async ({ name }) => {
+		return {
+			content: [{ type: 'text', text: `Hello, ${name}!` }],
+		}
+	},
+)
+```
+
+<callout-success>
+	Note the `describe` on the argument. This is optional, but very helpful for
+	the LLM to understand the tool and where to get the arguments from.
+</callout-success>
+
+- 📜
+  [MCP Spec: Tools](https://modelcontextprotocol.io/specification/2025-03-26/server/tools)

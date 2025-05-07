@@ -1,1 +1,80 @@
 # Tools
+
+The Model Context Protocol (MCP) enables language models to interact with
+external systems through a concept called "tools." Tools are server-defined
+functions that can be invoked by clients (like LLMs or user interfaces) to
+perform specific actions—such as calculations, data lookups, or API calls—using
+a standardized protocol.
+
+In MCP, each tool is uniquely named and described, and its expected input
+parameters are defined using a JSON Schema. When a client wants to use a tool,
+it sends a request specifying the tool's name and the required arguments. The
+server executes the tool and returns the result in a structured format, which
+can include text, images, audio, or even references to additional resources.
+
+In the future, hopefully we can even respond with UI! For more on this, check
+out my post
+[The future of AI interaction: Beyond just text](https://www.epicai.pro/the-future-of-ai-interaction-beyond-just-text-w22ps).
+
+For trust and safety, MCP encourages a "human-in-the-loop" approach: users
+should be able to see which tools are available, confirm sensitive operations,
+and review tool inputs and outputs. The protocol also supports dynamic discovery
+of available tools and notifies clients if the tool list changes.
+
+## Example: Defining a Simple Tool
+
+```ts
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+
+const server = new McpServer(
+	{ name: 'hello-world-server', version: '1.0.0' },
+	{ capabilities: { tools: {} }, instructions: 'A simple hello world server.' },
+)
+
+server.tool('hello', 'Say hello', async () => {
+	return {
+		content: [{ type: 'text', text: 'Hello, world!' }],
+	}
+})
+```
+
+Example client request:
+
+```json
+{
+	"jsonrpc": "2.0",
+	"id": 1,
+	"method": "tools/call",
+	"params": {
+		"name": "hello",
+		"arguments": {}
+	}
+}
+```
+
+Example server response:
+
+```json
+{
+	"jsonrpc": "2.0",
+	"id": 1,
+	"result": {
+		"content": [
+			{
+				"type": "text",
+				"text": "Hello, world!"
+			}
+		],
+		"isError": false
+	}
+}
+```
+
+In this exercise, you'll extend your MCP server to declare support for tools and
+implement a simple tool that performs addition. You'll start by exposing a basic
+tool with a hardcoded response, then evolve it to accept parameters and return
+dynamic results based on user input. This will give you hands-on experience with
+MCP's tool registration, input validation (using [Zod](https://zod.dev/)
+schemas), and result formatting.
+
+- 📜 [MCP Spec: Tools](https://modelcontextprotocol.io/specification/2025-03-26/server/tools)

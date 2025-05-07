@@ -1,1 +1,26 @@
 # Arguments
+
+👨‍💼 Well done! You've just made your MCP tool dynamic—now it can accept arguments
+from the client and return results based on user input. This is a huge step
+toward building truly interactive and useful AI-powered systems.
+
+What's cool about this is the end user can use natural language to describe the
+arguments they want to pass to the tool. For example, they could say "add one
+and two" and the tool would automatically parse that into the `firstNumber` and
+`secondNumber` arguments. They could even do it in another language!
+
+Taking it further, the LLM could derive those arguments from the conversation
+which could include context from other tools. Tools working together to solve a
+complex problem!
+
+By using [Zod](https://zod.dev/) for input validation, you've ensured your tool
+is robust and safe, and you now have a pattern for building more complex tools
+in the future.
+
+Key learnings from this step:
+
+- How to define and validate tool arguments using Zod
+- How to access arguments in your tool handler
+- How to return dynamic results based on user input
+
+You're now ready to build all sorts of powerful, parameterized tools!
