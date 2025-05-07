@@ -65,16 +65,13 @@
       "path": "exercises/04.resources/03.solution.embedded"
     },
     {
-      "path": "exercises/04.resources/04.solution.utils"
+      "path": "exercises/05.prompts/01.problem.simple"
     },
     {
-      "path": "exercises/05.prompts/01.solution"
+      "path": "exercises/05.prompts/01.solution.simple"
     },
     {
-      "path": "exercises/08.end-stdio/01.problem"
-    },
-    {
-      "path": "exercises/99.final/01.solution"
+      "path": "exercises/05.prompts/02.solution.args"
     }
   ]
 }

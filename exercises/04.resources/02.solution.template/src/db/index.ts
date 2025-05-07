@@ -67,10 +67,44 @@ export class DB {
 		const stmt = this.#db.prepare(
 			sql`SELECT * FROM entries ORDER BY created_at DESC`,
 		)
-		const entries = stmt.all()
-		return z
-			.array(entrySchema)
-			.parse(entries.map((entry) => snakeToCamel(entry)))
+		const entries = stmt.all().map((entry) => snakeToCamel(entry))
+		return z.array(entrySchema).parse(entries)
+	}
+
+	async getEntriesWithTags() {
+		const entriesStmt = this.#db.prepare(
+			sql`SELECT * FROM entries ORDER BY created_at DESC`,
+		)
+		const entries = entriesStmt.all().map((entry) => snakeToCamel(entry))
+
+		// Query all tags for all entries
+		const tagsStmt = this.#db.prepare(sql`
+			SELECT et.entry_id, t.id as tag_id, t.name as tag_name
+			FROM entry_tags et
+			JOIN tags t ON et.tag_id = t.id
+		`)
+		const tagRows = tagsStmt.all().map((row) => snakeToCamel(row))
+
+		// Build a map of entryId to tags
+		const entryIdToTags = new Map<number, Array<{ id: number; name: string }>>()
+		for (const row of tagRows as any[]) {
+			const { entryId, tagId, tagName } = row
+			if (!entryIdToTags.has(entryId)) {
+				entryIdToTags.set(entryId, [])
+			}
+			entryIdToTags.get(entryId)!.push({ id: tagId, name: tagName })
+		}
+
+		const entryWithTagSchema = entrySchema.extend({
+			tags: z.array(z.object({ id: z.number(), name: z.string() })),
+		})
+
+		const entriesWithTags = entries.map((entry: any) => ({
+			...entry,
+			tags: entryIdToTags.get(entry.id) ?? [],
+		}))
+
+		return z.array(entryWithTagSchema).parse(entriesWithTags)
 	}
 
 	async getEntry(id: number) {
@@ -85,10 +119,10 @@ export class DB {
 			WHERE et.entry_id = ?
 			ORDER BY t.name
 		`)
-		const tagsResult = tagsStmt.all(id)
+		const tagsResult = tagsStmt.all(id).map((tag) => snakeToCamel(tag))
 		const tags = z
 			.array(z.object({ id: z.number(), name: z.string() }))
-			.parse(tagsResult.map((result: any) => snakeToCamel(result)))
+			.parse(tagsResult)
 		return { ...entry, tags }
 	}
 
@@ -97,10 +131,8 @@ export class DB {
 		const stmt = this.#db.prepare(
 			sql`SELECT * FROM entries ORDER BY created_at DESC`,
 		)
-		const results = stmt.all()
-		return z
-			.array(entrySchema)
-			.parse(results.map((result: any) => snakeToCamel(result)))
+		const results = stmt.all().map((result) => snakeToCamel(result))
+		return z.array(entrySchema).parse(results)
 	}
 
 	async updateEntry(
@@ -180,10 +212,8 @@ export class DB {
 
 	async getTags() {
 		const stmt = this.#db.prepare(sql`SELECT * FROM tags ORDER BY name`)
-		const results = stmt.all()
-		return z
-			.array(tagSchema)
-			.parse(results.map((result: any) => snakeToCamel(result)))
+		const results = stmt.all().map((result) => snakeToCamel(result))
+		return z.array(tagSchema).parse(results)
 	}
 
 	async getTag(id: number) {
@@ -195,10 +225,10 @@ export class DB {
 
 	async listTags() {
 		const stmt = this.#db.prepare(sql`SELECT id, name FROM tags ORDER BY name`)
-		const results = stmt.all()
+		const results = stmt.all().map((result) => snakeToCamel(result))
 		return z
 			.array(z.object({ id: z.number(), name: z.string() }))
-			.parse(results.map((result: any) => snakeToCamel(result)))
+			.parse(results)
 	}
 
 	async updateTag(id: number, tag: Partial<z.input<typeof newTagSchema>>) {
@@ -299,9 +329,7 @@ export class DB {
 			WHERE et.entry_id = ?
 			ORDER BY t.name
 		`)
-		const results = stmt.all(entryId)
-		return z
-			.array(tagSchema)
-			.parse(results.map((result: any) => snakeToCamel(result)))
+		const results = stmt.all(entryId).map((result) => snakeToCamel(result))
+		return z.array(tagSchema).parse(results)
 	}
 }

@@ -71,11 +71,48 @@ export class DB {
 		return z.array(entrySchema).parse(entries)
 	}
 
-	async getEntriesWithTags() {
-		const entriesStmt = this.#db.prepare(
-			sql`SELECT * FROM entries ORDER BY created_at DESC`,
-		)
-		const entries = entriesStmt.all().map((entry) => snakeToCamel(entry))
+	async getEntriesWithTags({
+		tagIds,
+		from,
+		to,
+	}: { tagIds?: Array<number>; from?: number; to?: number } = {}) {
+		// Build dynamic WHERE and JOIN clauses
+		let whereClauses: Array<string> = []
+		let params: Array<any> = []
+		let joinClause = ''
+		let groupByHaving = ''
+
+		if (from) {
+			whereClauses.push('created_at >= ?')
+			params.push(from)
+		}
+		if (to) {
+			whereClauses.push('created_at <= ?')
+			params.push(to)
+		}
+
+		if (tagIds?.length) {
+			// Join with entry_tags for tag filtering
+			joinClause = sql`JOIN entry_tags et ON entries.id = et.entry_id`
+			whereClauses.push(sql`et.tag_id IN (${tagIds.map(() => '?').join(',')})`)
+			params.push(...tagIds)
+			// Group by entry and only keep those with all tagIds
+			groupByHaving = sql`GROUP BY entries.id HAVING COUNT(DISTINCT et.tag_id) = ${tagIds.length}`
+		}
+
+		const whereSQL =
+			whereClauses.length > 0 ? sql`WHERE ${whereClauses.join(' AND ')}` : ''
+		const sqlQuery = sql`
+			SELECT entries.* FROM entries
+			${joinClause}
+			${whereSQL}
+			${groupByHaving}
+			ORDER BY created_at DESC
+		`
+		const entriesStmt = this.#db.prepare(sqlQuery)
+		const entries = entriesStmt
+			.all(...params)
+			.map((entry) => snakeToCamel(entry))
 
 		// Query all tags for all entries
 		const tagsStmt = this.#db.prepare(sql`

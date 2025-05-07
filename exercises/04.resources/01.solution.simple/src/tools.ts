@@ -268,7 +268,7 @@ function createReply(text: any): CallToolResult {
 		return { content: [{ type: 'text', text }] }
 	} else {
 		return {
-			content: [{ type: 'text', text: JSON.stringify(text, null, 2) }],
+			content: [{ type: 'text', text: JSON.stringify(text) }],
 		}
 	}
 }

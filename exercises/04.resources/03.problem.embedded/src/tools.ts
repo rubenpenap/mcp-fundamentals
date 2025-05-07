@@ -148,11 +148,19 @@ export async function initializeTools(agent: EpicMeMCP) {
 		async (tag) => {
 			try {
 				const createdTag = await agent.db.createTag(tag)
-				// 🐨 replace createReply with a raw object so we can return the
-				// text content as well as the resource of the tag
-				return createReply(
-					`Tag "${createdTag.name}" created successfully with ID "${createdTag.id}"`,
-				)
+				return {
+					content: [
+						{
+							type: 'text',
+							text: `Tag "${createdTag.name}" created successfully with ID "${createdTag.id}"`,
+						},
+						// 🐨 add a resource of the tag. It should have "type" of "resource"
+						// and a "resource" object with the following properties:
+						// - "uri": a string that is the same as the tag ID
+						// - "mimeType": a string that is "application/json"
+						// - "text": a string that is the JSON representation of the tag
+					],
+				}
 			} catch (error) {
 				return createErrorReply(error)
 			}
@@ -270,7 +278,7 @@ function createReply(text: any): CallToolResult {
 		return { content: [{ type: 'text', text }] }
 	} else {
 		return {
-			content: [{ type: 'text', text: JSON.stringify(text, null, 2) }],
+			content: [{ type: 'text', text: JSON.stringify(text) }],
 		}
 	}
 }

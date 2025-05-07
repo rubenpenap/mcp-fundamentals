@@ -159,7 +159,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 							resource: {
 								uri: `tag://${createdTag.id}`,
 								mimeType: 'application/json',
-								text: JSON.stringify(createdTag, null, 2),
+								text: JSON.stringify(createdTag),
 							},
 						},
 					],
@@ -281,7 +281,7 @@ function createReply(text: any): CallToolResult {
 		return { content: [{ type: 'text', text }] }
 	} else {
 		return {
-			content: [{ type: 'text', text: JSON.stringify(text, null, 2) }],
+			content: [{ type: 'text', text: JSON.stringify(text) }],
 		}
 	}
 }
