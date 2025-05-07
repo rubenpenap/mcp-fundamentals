@@ -1,3 +1,4 @@
+import { invariant } from '@epic-web/invariant'
 import { type GetPromptResult } from '@modelcontextprotocol/sdk/types.js'
 import { z } from 'zod'
 import { type DB } from './db/index.ts'
@@ -6,52 +7,20 @@ import { getErrorMessage, formatDate, timeAgo } from './utils.ts'
 
 export async function initializePrompts(agent: EpicMeMCP) {
 	agent.server.prompt(
-		'summarize-journal-entries',
-		'Summarize your past journal entries',
+		'suggest-tags',
+		'Suggest tags for a journal entry',
 		{
-			tagIds: z
+			entryId: z
 				.string()
-				.optional()
-				.describe(
-					'Optional comma-separated set of tag IDs to filter entries by',
-				),
-			from: z
-				.string()
-				.optional()
-				.describe(
-					'Optional date string in YYYY-MM-DD format to filter entries by',
-				),
-			to: z
-				.string()
-				.optional()
-				.describe(
-					'Optional date string in YYYY-MM-DD format to filter entries by',
-				),
+				.describe('The ID of the journal entry to suggest tags for'),
 		},
-		async ({ tagIds, from, to }) => {
+		async ({ entryId }) => {
 			try {
-				const entries = await agent.db.getEntriesWithTags({
-					tagIds: tagIds ? tagIds.split(',').map(Number) : undefined,
-					from: from ? new Date(from).getTime() : undefined,
-					to: to ? new Date(to).getTime() : undefined,
-				})
-				if (entries.length === 0) {
-					return {
-						messages: [
-							{
-								role: 'assistant',
-								content: {
-									type: 'text',
-									text: 'You have no journal entries yet. Would you like to create one?',
-								},
-							},
-						],
-					} satisfies GetPromptResult
-				}
+				const entry = await agent.db.getEntry(Number(entryId))
+				invariant(entry, `Entry with ID "${entryId}" not found`)
 
-				const formattedEntries = entries
-					.map((entry) => getFormattedEntry(entry))
-					.join('\n\n')
+				const unusedTags = await getUnusedTags(agent.db, entry)
+				const formattedEntry = getFormattedEntry(entry)
 
 				return {
 					messages: [
@@ -59,7 +28,20 @@ export async function initializePrompts(agent: EpicMeMCP) {
 							role: 'user',
 							content: {
 								type: 'text',
-								text: `Here are my journal entries:\n\n${formattedEntries}\n\nCan you please summarize them for me?`,
+								text: [
+									`Here is my journal entry (ID: ${entryId}):`,
+									'',
+									'---',
+									formattedEntry,
+									'---',
+									'',
+									unusedTags.length
+										? `Here are other tags I have available:`
+										: `I do not have any other tags available.`,
+									`${unusedTags.map((tag) => `${tag.name}: ${tag.description} (${tag.id})`).join('\n')}`,
+									'',
+									`Can you please suggest some tags to add to my entry? For those that I approve, if it does not yet exist, create it with the EpicMe "create_tag". Then add it with the EpicMe "add_tag_to_entry" tool.`,
+								].join('\n'),
 							},
 						},
 					],
@@ -69,6 +51,22 @@ export async function initializePrompts(agent: EpicMeMCP) {
 			}
 		},
 	)
+}
+
+async function getUnusedTags(
+	db: DB,
+	entry: Awaited<ReturnType<DB['getEntriesWithTags']>>[number],
+) {
+	const tags = await db.listTags()
+	const unusedTagIds = tags
+		.filter((tag) => !entry.tags.includes(tag))
+		.map((t) => t.id)
+	const unusedTags: Array<NonNullable<Awaited<ReturnType<DB['getTag']>>>> = []
+	for (const tagId of unusedTagIds) {
+		const tag = await db.getTag(tagId)
+		if (tag) unusedTags.push(tag)
+	}
+	return unusedTags
 }
 
 function getFormattedEntry(
@@ -83,7 +81,6 @@ function getFormattedEntry(
 	const createdAtAgo = timeAgo(entry.createdAt)
 	const updatedAtAgo = timeAgo(entry.updatedAt)
 	return [
-		'---',
 		`# ${entry.title}`,
 		'',
 		entry.content,
@@ -91,12 +88,11 @@ function getFormattedEntry(
 		`Mood: ${entry.mood ?? 'N/A'}`,
 		`Weather: ${entry.weather ?? 'N/A'}`,
 		`Location: ${entry.location ?? 'N/A'}`,
-		`Is Private: ${entry.isPrivate}`,
-		`Is Favorite: ${entry.isFavorite}`,
+		`Is Private: ${entry.isPrivate ? 'Yes' : 'No'}`,
+		`Is Favorite: ${entry.isFavorite ? 'Yes' : 'No'}`,
 		`Created At: ${createdAtDate} (${createdAtAgo})`,
 		`Updated At: ${updatedAtDate} (${updatedAtAgo})`,
 		`Tags: ${tagList}`,
-		'---',
 	].join('\n')
 }
 
