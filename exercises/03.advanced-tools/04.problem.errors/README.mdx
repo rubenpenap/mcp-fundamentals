@@ -1,1 +1,21 @@
 # Error Handling
+
+Example error response:
+
+```json
+{
+	"jsonrpc": "2.0",
+	"id": 2,
+	"result": {
+		"content": [
+			{
+				"type": "text",
+				"text": "Entry with id 123 not found"
+			}
+		],
+		"isError": true
+	}
+}
+```
+
+- [📜 MCP Spec: Errors](https://modelcontextprotocol.io/specification/2025-03-26/server/tools#error-handling)
