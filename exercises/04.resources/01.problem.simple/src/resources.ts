@@ -1,4 +1,4 @@
-// 🐨 you'll use this to get the username of the creator of the app
+// 💰 you'll use this to get the username of the creator of the app
 // import { userInfo } from 'node:os'
 import { type EpicMeMCP } from './index.ts'
 

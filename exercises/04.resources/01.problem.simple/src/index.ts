@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { DB } from './db/index.ts'
-// 🐨 bring in initializeResources from the new ./resources.ts file
+// 💰 bring in initializeResources from the new ./resources.ts file
 // import { initializeResources } from './resources.ts'
 import { initializeTools } from './tools.ts'
 

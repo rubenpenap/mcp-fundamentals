@@ -1,5 +1,5 @@
 import { userInfo } from 'node:os'
-// 🐨 you'll use both of these in this exercise:
+// 💰 you'll use both of these in this exercise:
 // import { invariant } from '@epic-web/invariant'
 // import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { type ReadResourceResult } from '@modelcontextprotocol/sdk/types.js'
