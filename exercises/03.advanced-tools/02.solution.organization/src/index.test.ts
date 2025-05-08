@@ -28,14 +28,18 @@ test('Tool Definition', async () => {
 
 	expect(firstTool).toEqual(
 		expect.objectContaining({
-			name: expect.stringMatching(/^add$/i),
-			description: expect.stringMatching(/^add two numbers$/i),
+			name: expect.stringMatching(/^create_entry$/i),
+			description: expect.stringMatching(/^create a new journal entry$/i),
 			inputSchema: expect.objectContaining({
 				type: 'object',
 				properties: expect.objectContaining({
-					firstNumber: expect.objectContaining({
-						type: 'number',
-						description: expect.stringMatching(/first/i),
+					title: expect.objectContaining({
+						type: 'string',
+						description: expect.stringMatching(/title/i),
+					}),
+					content: expect.objectContaining({
+						type: 'string',
+						description: expect.stringMatching(/content/i),
 					}),
 				}),
 			}),
@@ -45,10 +49,10 @@ test('Tool Definition', async () => {
 
 test('Tool Call', async () => {
 	const result = await client.callTool({
-		name: 'add',
+		name: 'create_entry',
 		arguments: {
-			firstNumber: 1,
-			secondNumber: 2,
+			title: 'Test Entry',
+			content: 'This is a test entry',
 		},
 	})
 
@@ -57,7 +61,9 @@ test('Tool Call', async () => {
 			content: expect.arrayContaining([
 				expect.objectContaining({
 					type: 'text',
-					text: expect.stringMatching(/3/),
+					text: expect.stringMatching(
+						/Entry "Test Entry" created successfully/,
+					),
 				}),
 			]),
 		}),

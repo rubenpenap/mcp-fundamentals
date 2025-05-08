@@ -67,10 +67,8 @@ export class DB {
 		const stmt = this.#db.prepare(
 			sql`SELECT * FROM entries ORDER BY created_at DESC`,
 		)
-		const entries = stmt.all()
-		return z
-			.array(entrySchema)
-			.parse(entries.map((entry) => snakeToCamel(entry)))
+		const entries = stmt.all().map((entry) => snakeToCamel(entry))
+		return z.array(entrySchema).parse(entries)
 	}
 
 	async getEntry(id: number) {
@@ -85,10 +83,10 @@ export class DB {
 			WHERE et.entry_id = ?
 			ORDER BY t.name
 		`)
-		const tagsResult = tagsStmt.all(id)
+		const tagsResult = tagsStmt.all(id).map((tag) => snakeToCamel(tag))
 		const tags = z
 			.array(z.object({ id: z.number(), name: z.string() }))
-			.parse(tagsResult.map((result: any) => snakeToCamel(result)))
+			.parse(tagsResult)
 		return { ...entry, tags }
 	}
 
@@ -97,10 +95,8 @@ export class DB {
 		const stmt = this.#db.prepare(
 			sql`SELECT * FROM entries ORDER BY created_at DESC`,
 		)
-		const results = stmt.all()
-		return z
-			.array(entrySchema)
-			.parse(results.map((result: any) => snakeToCamel(result)))
+		const results = stmt.all().map((result) => snakeToCamel(result))
+		return z.array(entrySchema).parse(results)
 	}
 
 	async updateEntry(
@@ -159,9 +155,6 @@ export class DB {
 	// Tag Methods
 	async createTag(tag: NewTag) {
 		const validatedTag = newTagSchema.parse(tag)
-		if (validatedTag.name.toLowerCase().includes('error')) {
-			throw new Error('Invalid tag name. Cannot contain the word "error"')
-		}
 		const stmt = this.#db.prepare(sql`
 			INSERT INTO tags (name, description)
 			VALUES (?, ?)
@@ -183,10 +176,8 @@ export class DB {
 
 	async getTags() {
 		const stmt = this.#db.prepare(sql`SELECT * FROM tags ORDER BY name`)
-		const results = stmt.all()
-		return z
-			.array(tagSchema)
-			.parse(results.map((result: any) => snakeToCamel(result)))
+		const results = stmt.all().map((result) => snakeToCamel(result))
+		return z.array(tagSchema).parse(results)
 	}
 
 	async getTag(id: number) {
@@ -198,10 +189,10 @@ export class DB {
 
 	async listTags() {
 		const stmt = this.#db.prepare(sql`SELECT id, name FROM tags ORDER BY name`)
-		const results = stmt.all()
+		const results = stmt.all().map((result) => snakeToCamel(result))
 		return z
 			.array(z.object({ id: z.number(), name: z.string() }))
-			.parse(results.map((result: any) => snakeToCamel(result)))
+			.parse(results)
 	}
 
 	async updateTag(id: number, tag: Partial<z.input<typeof newTagSchema>>) {
@@ -302,9 +293,7 @@ export class DB {
 			WHERE et.entry_id = ?
 			ORDER BY t.name
 		`)
-		const results = stmt.all(entryId)
-		return z
-			.array(tagSchema)
-			.parse(results.map((result: any) => snakeToCamel(result)))
+		const results = stmt.all(entryId).map((result) => snakeToCamel(result))
+		return z.array(tagSchema).parse(results)
 	}
 }

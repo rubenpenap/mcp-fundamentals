@@ -72,5 +72,12 @@ including resource registration, templates, and embedding resources in tool
 responses. This will set the stage for building applications that can share
 rich, structured context with language models and other clients.
 
+<callout-warning>
+	You'll notice we have a bunch of tools for reading data which you might think
+	we should just use resources for. Unfortunately, all the popular MCP clients
+	as of today are very limited in their use of resources so we'll keep those
+	tools around. In the future, we should just use resources for this stuff.
+</callout-warning>
+
 - 📜
   [MCP Spec: Resources](https://modelcontextprotocol.io/specification/2025-03-26/server/resources)
