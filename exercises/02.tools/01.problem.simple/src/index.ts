@@ -13,12 +13,9 @@ const server = new McpServer(
 )
 
 // 🐨 add a tool to the server with the server.tool API
-// - it should be named 'add'
-// - it should have a description explaining what it can be used to do
-// - provide an input schema object with two properties which are validated with zod (give them descriptions as well):
-//   - firstNumber: a number
-//   - secondNumber: a number
-// - it should return a standard text response with the sum of the two numbers
+// - the name should be 'add'
+// - the description should explain what it can be used to do (add one and two)
+// - the callback should return a standard text response that says "one and two equals three"
 
 async function main() {
 	const transport = new StdioServerTransport()
