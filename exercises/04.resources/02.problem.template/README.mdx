@@ -1,1 +1,56 @@
 # Resource Templates
+
+👨‍💼 Now that you've registered a static resource, let's make things more dynamic!
+In this step, you'll use MCP's resource templates to expose a whole family of
+resources—each with its own unique URI and data.
+
+Resource templates let you define parameterized resources, like `entry://{id}`
+or `tag://{id}`. This means clients can discover and read individual entries or
+tags by their unique identifiers, just like accessing a file by its path.
+
+Here's a dynamic "hello world" resource template example that reads names from a
+database:
+
+```ts
+import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js'
+
+agent.server.resource(
+	'hello',
+	new ResourceTemplate('hello://{name}', {
+		list: async () => {
+			// Imagine this is a call to your database to get all names
+			const names = await db.getAllNames()
+			return {
+				resources: names.map((name) => ({
+					name,
+					uri: `hello://${name}`,
+					mimeType: 'text/plain',
+				})),
+			}
+		},
+	}),
+	{ description: 'Say hello to anyone by name!' },
+	async (uri, { name }) => {
+		return {
+			contents: [
+				{
+					mimeType: 'text/plain',
+					text: `Hello, ${name}!`,
+					uri: uri.toString(),
+				},
+			],
+		}
+	},
+)
+```
+
+Notice how the `list` callback queries the database and returns a resource
+listing for each name. This pattern is exactly what you'll use to expose entries
+and tags from your own database.
+
+Your goal in this step:
+
+- Use resource templates to expose entries and tags from your database, each
+  accessible by a unique URI.
+- Make sure clients can list all available entries and tags (using the `list`
+  callback), and read the details for any specific one.

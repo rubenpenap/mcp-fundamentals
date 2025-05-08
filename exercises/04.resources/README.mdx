@@ -1,1 +1,76 @@
 # Resources
+
+In previous exercises, you learned how to extend your MCP server with
+tools—server-defined functions that let clients perform actions or retrieve
+data. But sometimes, what you want to expose isn't just a function, but a
+_resource_: a file, a database record, or some other piece of structured data
+that can be read (and sometimes listed or searched) by clients.
+
+The Model Context Protocol (MCP) has the concept of **resources** to make this
+possible. Resources are a standardized way for servers to share contextual data
+with clients—such as files, database entries, or application metadata—using a
+uniform interface. Each resource is uniquely identified by a URI and can be
+described with metadata like a name, description, and MIME type:
+
+Example request to read a resource:
+
+```json
+{
+	"jsonrpc": "2.0",
+	"id": 2,
+	"method": "resources/read",
+	"params": {
+		"uri": "taco://menu/items/carne-asada"
+	}
+}
+```
+
+Example response:
+
+```json
+{
+	"jsonrpc": "2.0",
+	"id": 2,
+	"result": {
+		"contents": [
+			{
+				"uri": "taco://menu/items/carne-asada",
+				"mimeType": "application/json",
+				"text": "{\"name\":\"Carne Asada Taco\",\"ingredients\":[\"steak\",\"tortilla\",\"onion\",\"cilantro\"],\"instructions\":\"Grill the steak, chop into small pieces, serve on warm tortillas\"}"
+			}
+		]
+	}
+}
+```
+
+This approach enables a wide range of use cases:
+
+- Exposing files or documents for LLMs to read and reference
+- Making database records (like journal entries or tags) available as structured
+  resources
+
+Really anything you would do with a GET request on a web server.
+
+MCP resources are designed to be application-driven: you decide what to expose,
+and how. Clients can list available resources, read their contents, and
+(optionally) subscribe to updates or changes. The protocol supports both static
+resources (like a credits file) and dynamic, parameterized resources (like a
+database entry with a specific ID).
+
+In this exercise, you'll extend your EpicMe journaling app to expose new types
+of resources:
+
+- **Credits metadata**: A simple resource describing the app's creator.
+- **Database-backed resources**: Journal entries and tags, each accessible via a
+  unique URI and discoverable through resource templates.
+- **Embedded resources**: Making it possible for tools to return references to
+  resources as part of their output, enabling richer, more contextual
+  interactions.
+
+By the end, you'll have hands-on experience with MCP's resource capabilities,
+including resource registration, templates, and embedding resources in tool
+responses. This will set the stage for building applications that can share
+rich, structured context with language models and other clients.
+
+- 📜
+  [MCP Spec: Resources](https://modelcontextprotocol.io/specification/2025-03-26/server/resources)

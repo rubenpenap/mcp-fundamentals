@@ -1,5 +1,20 @@
 # Error Handling
 
+👨‍💼 As we add more features, it's inevitable that things will sometimes go
+wrong—maybe a user tries to fetch a journal entry that doesn't exist, or there's
+a problem saving data. It's important that both users and LLMs get clear,
+structured feedback when errors happen.
+
+For this step:
+
+- Update your tools to return error responses in a way that's compatible with
+  the MCP spec.
+- Make sure errors are surfaced in the response, with `isError: true` and a
+  helpful message in the content.
+
+This will make your journaling app more robust and user-friendly, and help LLMs
+handle problems gracefully.
+
 Example error response:
 
 ```json

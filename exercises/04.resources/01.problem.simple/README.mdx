@@ -1,1 +1,39 @@
 # Resources
+
+👨‍💼 Our users really want to know who's responsible for building this amazing
+app! (That's you!). In this step, you'll take your first step toward exposing
+structured data from your server—not just as tool responses, but as first-class
+resources that clients can discover and read.
+
+Your goal:
+
+- Declare the `resources` capability on your server.
+- Register a simple resource called "credits" that provides information about
+  the creator of the app. This resource should be available at the URI
+  `meta://credits` and return a plain text string with the username of the app's
+  creator.
+
+This is your first taste of the MCP resources system. No need for dynamic
+templates or database integration yet—just get a static resource registered and
+returning a simple value.
+
+Here's an example of a resource:
+
+```ts
+agent.server.resource(
+	'hello',
+	'hello://world',
+	{ description: 'A simple hello world resource' },
+	async (uri) => {
+		return {
+			contents: [
+				{
+					mimeType: 'text/plain',
+					text: 'Hello, world!',
+					uri: uri.toString(),
+				},
+			],
+		}
+	},
+)
+```

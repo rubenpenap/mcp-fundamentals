@@ -1,1 +1,24 @@
 # Embedded Resources
+
+👨‍💼 You've already made your resources discoverable and accessible—now let's make
+them even more useful! In this step, you'll learn how to embed a resource
+directly in your tool responses.
+
+Why does this matter? Sometimes, a tool's output isn't just plain text—it might
+be a file, a database record, or some other structured data. By embedding
+resource references, you enable clients (and LLMs) to follow links to additional
+context, download files, subscribe to updates, or fetch related data on demand.
+
+Your goal in this step:
+
+- Update your tools so that, when they create or return an entry or tag, they
+  also include a reference to the corresponding resource (using the
+  `type: 'resource'` content type in the response).
+- Make sure the resource includes the correct URI and metadata, so clients can
+  easily fetch the resource if they want more details.
+- Include the resource itself in the response, so clients can use it directly.
+
+This pattern unlocks powerful workflows—tools and resources working together to
+provide richer, more actionable results.
+
+- 📜 [MCP Spec: Tools (Embedded Resources)](https://modelcontextprotocol.io/specification/2025-03-26/server/tools#embedded-resources)
