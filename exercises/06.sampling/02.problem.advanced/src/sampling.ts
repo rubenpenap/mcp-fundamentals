@@ -100,5 +100,15 @@ Please respond with a proper commendation for yourself.
 			tagId,
 		})
 	}
-	console.error('Added tags to entry', entry.id, idsToAdd)
+	const allTags = await agent.db.listTags()
+
+	console.error(
+		'Added tags to entry',
+		entry.id,
+		Array.from(idsToAdd)
+			.map((id) => allTags.find((t) => t.id === id))
+			.filter(Boolean)
+			.map((t) => `${t.name} (${t.id})`)
+			.join(', '),
+	)
 }
