@@ -155,6 +155,9 @@ export class DB {
 	// Tag Methods
 	async createTag(tag: NewTag) {
 		const validatedTag = newTagSchema.parse(tag)
+		if (validatedTag.name.toLocaleLowerCase().includes('error')) {
+			throw new Error('Tag name cannot include the word "error"')
+		}
 		const stmt = this.#db.prepare(sql`
 			INSERT INTO tags (name, description)
 			VALUES (?, ?)
