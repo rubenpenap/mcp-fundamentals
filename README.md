@@ -1,5 +1,5 @@
 <div>
-  <h1 align="center"><a href="https://www.epicai.dev/workshops">MCP Fundamentals 🧱</a></h1>
+  <h1 align="center"><a href="https://www.epicai.pro/">MCP Fundamentals 🧱</a></h1>
   <strong>
     Meet users in the AI apps they already use
   </strong>
@@ -15,7 +15,7 @@
 <div align="center">
   <a
     alt="Epic Web logo with the words Deployed Version"
-    href="https://epicweb-dev-mcp-fundamentals.fly.dev/"
+    href="https://mcp-fundamentals.epicai.pro/"
   >
     <img
       width="300px"
