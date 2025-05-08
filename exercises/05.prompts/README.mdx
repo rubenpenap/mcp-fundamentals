@@ -1,1 +1,40 @@
 # Prompts
+
+Sometimes there are common workflows for people using your MCP server you want
+to make easier for users. You may not want your users to have to write the same
+prompt all the time for that workflow (not everyone is a "prompt engineer").
+
+The Model Context Protocol (MCP) has a specification for **prompts** as a way
+for servers to expose reusable, structured instructions to language models and
+clients. Prompts are more than just static text—they can be parameterized and
+invoked by users to guide model behavior in a consistent, transparent way.
+
+With prompts, servers can offer a menu of available instructions (like
+"summarize my journal entries from last week," "write alt text for this image"
+or "review this code"), each with a clear description and customizable
+arguments. This enables richer, more user-driven interactions, where clients can
+select and fill in prompts as needed.
+
+For example, a server might expose a simple "hello world" prompt:
+
+```ts
+server.prompt('hello_world', 'Say hello to the user', {}, async () => ({
+	messages: [
+		{
+			role: 'user',
+			content: { type: 'text', text: 'Hello, world!' },
+		},
+	],
+}))
+```
+
+Clients can discover available prompts, retrieve their templates, and supply
+arguments to customize the resulting messages. Prompts can include not just
+text, but also images, audio, or references to server-managed resources—enabling
+multi-modal and context-rich interactions.
+
+This exercise will introduce you to MCP's prompt capabilities, showing how to
+declare prompt support, register prompts with arguments, and return structured
+messages for downstream use.
+
+- 📜 [MCP Prompts Specification](https://modelcontextprotocol.io/specification/2025-03-26/server/prompts)

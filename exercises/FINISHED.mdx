@@ -1,3 +1,66 @@
 # MCP Fundamentals 🧱
 
 Hooray! You're all done! 👏👏
+
+## What you've learned
+
+### 1. MCP Basics & Ping
+
+- **Core Concepts:** You learned the foundational structure of the Model Context
+  Protocol (MCP), which enables standardized communication between clients and
+  servers.
+- **Ping Tool:** Implemented a simple `ping` tool to verify server connectivity
+  using JSON-RPC, establishing the groundwork for MCP-compliant servers.
+
+### 2. Tools
+
+- **Tool Registration:** Explored how to define and register server-side
+  functions (tools) that clients can invoke.
+- **Input Validation:** Used JSON Schema (and Zod) to validate tool arguments.
+- **Dynamic Responses:** Built tools that return both static and dynamic
+  results, and learned about trust, safety, and human-in-the-loop design.
+
+### 3. Advanced Tools
+
+- **Stateful Tools:** Developed more complex tools that interact with a
+  database, enabling persistent and retrievable data.
+- **Code Organization:** Refactored code for maintainability, using class-based
+  server structures.
+- **Error Handling:** Implemented robust error handling to provide clear,
+  MCP-compliant feedback to clients.
+
+### 4. Resources
+
+- **Resource Concept:** Learned how to expose structured data (files, database
+  records, etc.) as resources via MCP.
+- **Resource URIs:** Used unique URIs and metadata to identify and describe
+  resources.
+- **Resource Operations:** Enabled clients to list, read, and (optionally)
+  subscribe to resources, supporting both static and dynamic data.
+
+### 5. Prompts
+
+- **Reusable Prompts:** Introduced MCP's prompt system for exposing reusable,
+  parameterized instructions to clients and LLMs.
+- **Prompt Registration:** Registered prompts that guide model behavior, making
+  workflows more accessible and consistent for users.
+
+### 6. Sampling
+
+- **Model Completions:** Integrated MCP's sampling capability to request
+  generative model completions (text, etc.) from clients.
+- **Automation:** Used sampling to automate tasks (e.g., suggesting tags), while
+  keeping users in control of model selection and permissions.
+- **Prompt Crafting:** Practiced crafting effective prompts and structuring
+  requests for reliability and safety.
+
+---
+
+**In summary:**
+
+You've built a robust MCP server that supports tools, resources, prompts, and
+sampling. You've learned to design for extensibility, safety, and real-world use
+cases—empowering both users and language models to interact with your server in
+powerful, structured ways.
+
+Amazing work! 🎉

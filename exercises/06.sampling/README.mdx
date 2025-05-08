@@ -1,10 +1,70 @@
 # Sampling
 
-<div>
-<!-- prettier-ignore -->
-{/*
-evalstate — 2:41 PM
-it's the same as max_tokens when you make a completions api request (e.g. return at most 1024 tokens in the response)
-system prompt + messages = input tokens. max_tokens is separate, but (system prompt + messages + OUTPUT MESSAGE) can't exceed context window size.
-*/}
-</div>
+Modern AI applications often need to generate new content (whether that's text,
+images, or more) on demand. This process is called **sampling**: asking a
+language model (or other generative model) to produce a completion or response
+based on a prompt and some context.
+
+Here's a simple example of a sampling request and response using MCP:
+
+```json
+// Request
+{
+	"jsonrpc": "2.0",
+	"id": 1,
+	"method": "sampling/createMessage",
+	"params": {
+		"messages": [
+			{
+				"role": "user",
+				"content": {
+					"type": "text",
+					"text": "Hello, world!"
+				}
+			}
+		],
+		"systemPrompt": "You are a helpful assistant.",
+		"maxTokens": 20
+	}
+}
+```
+
+```json
+// Response
+{
+	"jsonrpc": "2.0",
+	"id": 1,
+	"result": {
+		"role": "assistant",
+		"content": {
+			"type": "text",
+			"text": "Hello! How can I help you today?"
+		},
+		"model": "claude-3-sonnet-20240307",
+		"stopReason": "endTurn"
+	}
+}
+```
+
+MCP standardizes how servers and clients can request these generations. Instead
+of requiring every server to manage its own API keys and model integrations, MCP
+lets servers request completions through a client, which handles model
+selection, permissions, and user controls. This approach enables powerful
+agentic behaviors—like having an LLM suggest tags for a journal entry, or
+generate a summary for a document—while keeping the user in control (and it lets
+you take advantage of the model for which
+[your user is already paying](https://www.epicai.pro/the-cost-effective-promise-of-model-context-protocol-mcp-jnwt3)).
+
+In this exercise, you'll extend your MCP server to leverage the sampling
+capability. You'll see how to:
+
+- Request a model completion from the client, including setting a system prompt,
+  user messages, and token limits.
+- Parse and validate the model's response.
+- Use sampling to automate tasks in your application, such as suggesting tags
+  for new journal entries.
+
+You'll also explore how to craft effective prompts for the model, and how to
+structure your requests and responses for reliability and safety.
+
+- 📜 [MCP Sampling Spec](https://modelcontextprotocol.io/specification/2025-03-26/client/sampling)
