@@ -4,6 +4,15 @@
 out of the box, so all we need to do is initialize the server, set up a
 transport for it, and then it should respond to `ping` requests.
 
+<callout-info>
+	ℹ️ NOTE: When initializing your MCP server, you'll need to provide `name` and
+	`version` fields. The `name` is a human-readable identifier for your server
+	(for example, `MyProductName`), and the `version` indicates the version of
+	your server (such as `1.0.0`). These fields help clients and tools identify
+	and interact with your server correctly, and are required by the MCP
+	specification.
+</callout-info>
+
 Start in <InlineFile file="src/index.ts" /> and follow the instructions in the
 comments.
 
