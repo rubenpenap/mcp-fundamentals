@@ -11,9 +11,9 @@ context, download files, subscribe to updates, or fetch related data on demand.
 
 Your goal in this step:
 
-- Update your tools so that, when they create or return an entry or tag, they
-  also include a reference to the corresponding resource (using the
-  `type: 'resource'` content type in the response).
+- Update your tools so that, when they create a tag, we tell them it was created
+  and also include a reference to the tag (using the `type: 'resource'` content
+  type in the response).
 - Make sure the resource includes the correct URI and metadata, so clients can
   easily fetch the resource if they want more details.
 - Include the resource itself in the response, so clients can use it directly.
