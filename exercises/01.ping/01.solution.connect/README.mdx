@@ -2,3 +2,55 @@
 
 👨‍💼 Great job! Now we know we've got an MCP server up and running. From here we
 can start adding a bunch of different tools, resources, and more to it.
+
+<details>
+<summary>🦉 What the StdioServerTransport does</summary>
+
+The `StdioServerTransport` is a simple transport that allows you to connect to
+your MCP server using the command line. It's a good way to get started and
+understand how MCP servers work.
+
+The MCP Client takes the `command` and `args` you configure and spawns a child
+process:
+
+```ts
+import { spawn } from 'child_process'
+
+// these come from our config in the MCP Inspector:
+const command = 'npm'
+const args = [
+	'--silent',
+	'--prefix',
+	'/Users/kody/code/mcp-fundamentals',
+	'run',
+	'dev:mcp',
+]
+
+// Then the MCP client spawns a child process:
+const child = spawn(command, args)
+```
+
+Then it listens for messages from the child process and sends them to the MCP
+server:
+
+```ts
+child.stdout.on('data', (data) => {
+	console.log(data)
+})
+```
+
+This is why we use `console.error` in our server, so that the MCP Client can
+print it to the console without interfering with the server's output.
+
+It also listens for messages from the MCP server and sends them to the child
+process:
+
+```ts
+child.stdin.write(JSON.stringify({ jsonrpc: '2.0', method: 'ping' }))
+```
+
+Other transport mechanisms exist as well, and while the code for them is
+different the underlying concept is the same. Just a server and client
+communicating with each other.
+
+</details>
