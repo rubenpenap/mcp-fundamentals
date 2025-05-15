@@ -49,7 +49,19 @@ This approach enables a wide range of use cases:
 - Making database records (like journal entries or tags) available as structured
   resources
 
-Really anything you would do with a GET request on a web server.
+<callout-success>
+	Really, a resource is anything you would traditionally have done with a GET
+	request on a web server.
+</callout-success>
+
+Here are a couple other examples of URIs you might use for a resource:
+
+```
+datetime://Euroupe/London/now
+http://example.com/llms.txt
+jira://myworkspace/ticket/304
+amazon://product/1234567890
+```
 
 MCP resources are designed to be application-driven: you decide what to expose,
 and how. Clients can list available resources, read their contents, and
