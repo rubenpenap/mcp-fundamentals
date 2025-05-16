@@ -1,0 +1,34 @@
+# Error Handling
+
+👨‍💼 As we add more features, it's inevitable that things will sometimes go
+wrong—maybe a user tries to fetch a journal entry that doesn't exist, or there's
+a problem saving data. It's important that both users and LLMs get clear,
+structured feedback when errors happen.
+
+Example error response:
+
+```json
+{
+	"jsonrpc": "2.0",
+	"id": 2,
+	"result": {
+		"content": [
+			{
+				"type": "text",
+				"text": "Entry with id 123 not found"
+			}
+		],
+		"isError": true
+	}
+}
+```
+
+Luckily for us, the MCP TypeScript SDK handles errors automatically. So all you
+need to do is throw an error from your tool, and the SDK will handle the rest!
+
+For this step, we're going to say that tag names cannot include the word
+"error". If it does, throw an error with a descriptive message and then try it
+out in the inspector. You'll notice the `isError` field is set to `true` and the
+content is the helpful error message you provided.
+
+- [📜 MCP Spec: Errors](https://modelcontextprotocol.io/specification/2025-03-26/server/tools#error-handling)
