@@ -1,4 +1,3 @@
-import { z } from 'zod'
 import { type EpicMeMCP } from './index.ts'
 
 export async function suggestTagsSampling(agent: EpicMeMCP, entryId: number) {
@@ -25,12 +24,5 @@ Please respond with a proper commendation for yourself.
 		maxTokens: 10,
 	})
 
-	const resultSchema = z.object({
-		content: z.object({
-			type: z.literal('text'),
-			text: z.string(),
-		}),
-	})
-	const parsedResult = resultSchema.parse(result)
-	console.error('Received response:', parsedResult.content.text)
+	console.error('Received response:', result.content.text)
 }

@@ -35,7 +35,7 @@ If you have some suggestions, respond with an array of tag objects. Existing tag
 				},
 			},
 		],
-		maxTokens: 300,
+		maxTokens: 100,
 	})
 
 	const resultSchema = z.object({

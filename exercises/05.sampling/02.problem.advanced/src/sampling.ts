@@ -40,7 +40,7 @@ Please respond with a proper commendation for yourself.
 				},
 			},
 		],
-		// 🐨 increase this to 300 or so...
+		// 🐨 increase this to 100 or so...
 		maxTokens: 10,
 	})
 
