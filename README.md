@@ -84,8 +84,20 @@ cd mcp-fundamentals
 npm run setup
 ```
 
-If you experience errors here, please open [an issue][issue] with as many
-details as you can offer.
+To make sure your environment is running correctly, please follow these
+additional steps:
+
+1. Run the workshop app with `npm start`
+2. Open the last exercise solution at
+   [`/exercise/05/02/solution?preview=solution`](http://localhost:5639/exercise/05/02/solution?preview=solution)
+3. Click the "Start App" button
+4. Click the "Connect" button
+
+You'll know it's working if you see a green dot and the word "Connected" in the
+MCP Inspector app.
+
+If you experience errors during this setup process, please open [an
+issue][issue] with as many details as you can offer.
 
 ## The Workshop App
 
