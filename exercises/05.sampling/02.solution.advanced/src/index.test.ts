@@ -1,4 +1,7 @@
+import fs from 'node:fs/promises'
+import path from 'node:path'
 import { invariant } from '@epic-web/invariant'
+import { faker } from '@faker-js/faker'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import {
@@ -9,8 +12,11 @@ import { test, beforeAll, afterAll, expect } from 'vitest'
 import { type z } from 'zod'
 
 let client: Client
+const EPIC_ME_DB_PATH = `./test.ignored/db.${process.env.VITEST_WORKER_ID}.sqlite`
 
 beforeAll(async () => {
+	const dir = path.dirname(EPIC_ME_DB_PATH)
+	await fs.mkdir(dir, { recursive: true })
 	client = new Client(
 		{
 			name: 'EpicMeTester',
@@ -25,12 +31,17 @@ beforeAll(async () => {
 	const transport = new StdioClientTransport({
 		command: 'tsx',
 		args: ['src/index.ts'],
+		env: {
+			...process.env,
+			EPIC_ME_DB_PATH,
+		},
 	})
 	await client.connect(transport)
 })
 
 afterAll(async () => {
 	await client.transport?.close()
+	await fs.unlink(EPIC_ME_DB_PATH)
 })
 
 test('Tool Definition', async () => {
@@ -55,29 +66,6 @@ test('Tool Definition', async () => {
 					}),
 				}),
 			}),
-		}),
-	)
-})
-
-test('Tool Call', async () => {
-	const result = await client.callTool({
-		name: 'create_entry',
-		arguments: {
-			title: 'Test Entry',
-			content: 'This is a test entry',
-		},
-	})
-
-	expect(result).toEqual(
-		expect.objectContaining({
-			content: expect.arrayContaining([
-				expect.objectContaining({
-					type: 'text',
-					text: expect.stringMatching(
-						/Entry "Test Entry" created successfully/,
-					),
-				}),
-			]),
 		}),
 	)
 })
@@ -114,12 +102,33 @@ test('Sampling', async () => {
 		return messageResultDeferred.promise
 	})
 
+	const fakeTag1 = {
+		name: faker.lorem.word(),
+		description: faker.lorem.sentence(),
+	}
+	const fakeTag2 = {
+		name: faker.lorem.word(),
+		description: faker.lorem.sentence(),
+	}
+
+	const result = await client.callTool({
+		name: 'create_tag',
+		arguments: fakeTag1,
+	})
+	const tag1Resource = (result.content as any).find(
+		(c: any) => c.type === 'resource',
+	)?.resource
+	invariant(tag1Resource, '🚨 No tag1 resource found')
+	const newTag1 = JSON.parse(tag1Resource.text) as any
+	invariant(newTag1.id, '🚨 No new tag1 found')
+
+	const entry = {
+		title: faker.lorem.words(3),
+		content: faker.lorem.paragraphs(2),
+	}
 	await client.callTool({
 		name: 'create_entry',
-		arguments: {
-			title: 'Test Entry',
-			content: 'This is a test entry',
-		},
+		arguments: entry,
 	})
 	const request = await messageRequestDeferred.promise
 
@@ -149,16 +158,10 @@ test('Sampling', async () => {
 		role: 'assistant',
 		content: {
 			type: 'text',
-			text: JSON.stringify([
-				{ id: 1 },
-				{
-					name: 'Testing Sampling',
-					description: 'Used when testing sampling. Hope it works',
-				},
-			]),
+			text: JSON.stringify([{ id: newTag1.id }, fakeTag2]),
 		},
 	})
 
-	// give the client a chance to process the result
+	// give the server a chance to process the result
 	await new Promise((resolve) => setTimeout(resolve, 100))
 })

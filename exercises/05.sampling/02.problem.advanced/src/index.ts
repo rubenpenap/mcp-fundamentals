@@ -39,7 +39,7 @@ You can also help users add tags to their entries and get all tags for an entry.
 }
 
 async function main() {
-	const agent = new EpicMeMCP('./db.sqlite')
+	const agent = new EpicMeMCP(process.env.EPIC_ME_DB_PATH ?? './db.sqlite')
 	await agent.init()
 	const transport = new StdioServerTransport()
 	await agent.server.connect(transport)
