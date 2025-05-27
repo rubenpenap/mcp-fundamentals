@@ -24,6 +24,8 @@ export async function initializeResources(agent: EpicMeMCP) {
 	agent.server.resource(
 		'tag',
 		new ResourceTemplate('epicme://tags/{id}', {
+			// 🐨 add a `complete` callback for the `id` parameter
+			// 💰 const tags = await agent.db.getTags()
 			list: async () => {
 				const tags = await agent.db.getTags()
 				return {
@@ -54,6 +56,8 @@ export async function initializeResources(agent: EpicMeMCP) {
 	agent.server.resource(
 		'entry',
 		new ResourceTemplate('epicme://entries/{id}', {
+			// 🐨 add a `complete` callback for the `id` parameter
+			// 💰 const entries = await agent.db.getEntries()
 			list: async () => {
 				const entries = await agent.db.getEntries()
 				return {

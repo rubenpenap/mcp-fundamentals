@@ -1,0 +1,37 @@
+# Resource Template Completions
+
+👨‍💼 Now that our users have a bunch of entries and tags, they'll want to be able
+to search for them. Let's add some completions to our resource templates to
+make this possible.
+
+This involves a simple callback as a part of our `ResourceTemplate` definition.
+For example:
+
+```ts lines=8-17
+import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js'
+
+const NAMES = ['Alice', 'Bob', 'Charlie']
+
+agent.server.resource(
+	'hello',
+	new ResourceTemplate('hello://{name}', {
+		complete: {
+			// this is an object with a key for each parameter in the resource template
+			// it accepts the value the user has typed so far and returns a string array
+			// of valid matching values
+			async name(value) {
+				// this is a function that returns a string array of valid matching values
+				// for the `name` parameter
+				return NAMES.filter((name) => name.includes(value))
+			},
+		},
+		list: async () => {
+			// ...
+		},
+	}),
+	{ description: 'Say hello to anyone by name!' },
+	async (uri, { name }) => {
+		// ...
+	},
+)
+```

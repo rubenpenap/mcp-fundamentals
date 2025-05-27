@@ -41,10 +41,16 @@
       "path": "exercises/03.resources/02.solution.template"
     },
     {
-      "path": "exercises/03.resources/03.problem.embedded"
+      "path": "exercises/03.resources/03.problem.completion"
     },
     {
-      "path": "exercises/03.resources/03.solution.embedded"
+      "path": "exercises/03.resources/03.solution.completion"
+    },
+    {
+      "path": "exercises/03.resources/04.problem.embedded"
+    },
+    {
+      "path": "exercises/03.resources/04.solution.embedded"
     },
     {
       "path": "exercises/04.prompts/01.problem.prompts"
