@@ -1,0 +1,43 @@
+# Optimized Prompts
+
+👨‍💼 Our users are complaining that when they use the `suggest_tags` prompt, it's
+taking a while to run because it has to run a few tools to get the data it
+needs.
+
+Instead, we can just include the data in the prompt!
+
+So replace the places where we instruct the LLM to run tools to acquire the data
+it needs with references to the data itself. Effectively, we'll have a prompt
+with multiple messages:
+
+1. Instructions (please suggest tags)
+2. The entry data
+3. The existing tags
+
+You can use embedded resources for the data. For example:
+
+```js
+const prompt = {
+	messages: [
+		{
+			role: 'user',
+			content: {
+				type: 'text',
+				text: '{Instructions}',
+			},
+		},
+		{
+			role: 'user',
+			content: {
+				type: 'resource',
+				resource: {
+					uri: '{uri}',
+					mimeType: 'application/json',
+					text: JSON.stringify(data),
+				},
+			},
+		},
+		// etc...
+	],
+}
+```

@@ -135,7 +135,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 					{
 						type: 'resource',
 						resource: {
-							uri: `tag://${createdTag.id}`,
+							uri: `epicme://tags/${createdTag.id}`,
 							mimeType: 'application/json',
 							text: JSON.stringify(createdTag),
 						},

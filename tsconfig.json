@@ -53,6 +53,12 @@
       "path": "exercises/04.prompts/01.solution.prompts"
     },
     {
+      "path": "exercises/04.prompts/02.problem.optimized-prompt"
+    },
+    {
+      "path": "exercises/04.prompts/02.solution.optimized-prompt"
+    },
+    {
       "path": "exercises/05.sampling/01.problem.simple"
     },
     {

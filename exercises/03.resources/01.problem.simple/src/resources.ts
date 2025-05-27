@@ -3,7 +3,7 @@
 import { type EpicMeMCP } from './index.ts'
 
 export async function initializeResources(agent: EpicMeMCP) {
-	// 🐨 create a resource called "credits" with the URI meta://credits
+	// 🐨 create a resource called "credits" with the URI epicme://credits
 	// this tool will return a string with the credits for the creators of the app
 	// so set the description to explain that
 	// 🐨 the handler accepts the uri and returns the contents array which should

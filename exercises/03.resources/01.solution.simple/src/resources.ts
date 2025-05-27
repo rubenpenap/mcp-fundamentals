@@ -4,7 +4,7 @@ import { type EpicMeMCP } from './index.ts'
 export async function initializeResources(agent: EpicMeMCP) {
 	agent.server.resource(
 		'credits',
-		'meta://credits',
+		'epicme://credits',
 		{
 			description: 'Credits for the creators of the app',
 		},
