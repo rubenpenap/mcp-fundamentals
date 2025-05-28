@@ -15,6 +15,7 @@ export class EpicMeMCP {
 			capabilities: {
 				tools: {},
 				resources: {},
+				completions: {},
 			},
 			instructions: `
 EpicMe is a journaling app that allows users to write about and review their experiences, thoughts, and reflections.

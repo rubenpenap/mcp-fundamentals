@@ -17,6 +17,7 @@ export class EpicMeMCP {
 			capabilities: {
 				tools: {},
 				resources: {},
+				completions: {},
 				// 🐨 add prompts capabilities here:
 			},
 			instructions: `
