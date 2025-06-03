@@ -25,7 +25,6 @@ export async function initializeResources(agent: EpicMeMCP) {
 	// 🐨 create two resources with a ResourceTemplate:
 	// - entry - URI: epicme://entries/{id}
 	// - tag - URI: epicme://tags/{id}
-	// 🐨 each should have a list method that returns all the entries and tags (respectively)
 	// 🐨 each should have a description
 	// 🐨 each should have a callback that reads the entry or tag for the given id
 	// 🐨 return contents with mimeType application/json and the entry or tag

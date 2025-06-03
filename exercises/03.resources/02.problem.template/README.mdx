@@ -17,17 +17,8 @@ import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js'
 agent.server.resource(
 	'hello',
 	new ResourceTemplate('hello://{name}', {
-		list: async () => {
-			// Imagine this is a call to your database to get all names
-			const names = await db.getAllNames()
-			return {
-				resources: names.map((name) => ({
-					name,
-					uri: `hello://${name}`,
-					mimeType: 'text/plain',
-				})),
-			}
-		},
+		// this is required to be specified, but we'll implement it later...
+		list: undefined,
 	}),
 	{ description: 'Say hello to anyone by name!' },
 	async (uri, { name }) => {
@@ -44,20 +35,10 @@ agent.server.resource(
 )
 ```
 
-Notice how the `list` callback queries the database and returns a resource
-listing for each name. This pattern is exactly what you'll use to expose entries
-and tags from your own database.
-
-<callout-success>
-	The reason for the `list` callback is to make it easy for clients to get a
-	list of available resources without having to know the exact URIs and without
-	having to request the entire resource (notice we only return the name, URI,
-	and type in the `list` callback).
-</callout-success>
-
 Your goal in this step:
 
 - Use resource templates to expose entries and tags from your database, each
   accessible by a unique URI.
-- Make sure clients can list all available entries and tags (using the `list`
-  callback), and read the details for any specific one.
+
+Test this out by creating a new entry or tag in your database and then using the
+inspector to see the one you created.

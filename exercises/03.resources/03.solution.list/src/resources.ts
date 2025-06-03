@@ -24,7 +24,16 @@ export async function initializeResources(agent: EpicMeMCP) {
 	agent.server.resource(
 		'tag',
 		new ResourceTemplate('epicme://tags/{id}', {
-			list: undefined,
+			list: async () => {
+				const tags = await agent.db.getTags()
+				return {
+					resources: tags.map((tag) => ({
+						name: tag.name,
+						uri: `epicme://tags/${tag.id}`,
+						mimeType: 'application/json',
+					})),
+				}
+			},
 		}),
 		{ description: 'A single tag' },
 		async (uri, { id }) => {
@@ -45,7 +54,16 @@ export async function initializeResources(agent: EpicMeMCP) {
 	agent.server.resource(
 		'entry',
 		new ResourceTemplate('epicme://entries/{id}', {
-			list: undefined,
+			list: async () => {
+				const entries = await agent.db.getEntries()
+				return {
+					resources: entries.map((entry) => ({
+						name: entry.title,
+						uri: `epicme://entries/${entry.id}`,
+						mimeType: 'application/json',
+					})),
+				}
+			},
 		}),
 		{ description: 'A single entry' },
 		async (uri, { id }) => {

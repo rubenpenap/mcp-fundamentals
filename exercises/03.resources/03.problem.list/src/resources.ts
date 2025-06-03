@@ -24,6 +24,8 @@ export async function initializeResources(agent: EpicMeMCP) {
 	agent.server.resource(
 		'tag',
 		new ResourceTemplate('epicme://tags/{id}', {
+			// 🐨 implement this list callback to get all tags (💰 agent.db.getTags())
+			// 🐨 return an array of resource listings (💰 each object has a name, uri, and mimeType).
 			list: undefined,
 		}),
 		{ description: 'A single tag' },
@@ -45,6 +47,8 @@ export async function initializeResources(agent: EpicMeMCP) {
 	agent.server.resource(
 		'entry',
 		new ResourceTemplate('epicme://entries/{id}', {
+			// 🐨 implement this list callback to get all entries (💰 agent.db.getEntries())
+			// 🐨 return an array of resource listings (💰 each object has a name, uri, and mimeType).
 			list: undefined,
 		}),
 		{ description: 'A single entry' },
