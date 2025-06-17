@@ -71,6 +71,12 @@
       "path": "exercises/04.prompts/02.solution.optimized-prompt"
     },
     {
+      "path": "exercises/04.prompts/03.problem.completion"
+    },
+    {
+      "path": "exercises/04.prompts/03.solution.completion"
+    },
+    {
       "path": "exercises/05.sampling/01.problem.simple"
     },
     {
