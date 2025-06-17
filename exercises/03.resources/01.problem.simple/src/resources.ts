@@ -1,13 +1,10 @@
-// 💰 you'll use this to get the username of the creator of the app
-// import { userInfo } from 'node:os'
 import { type EpicMeMCP } from './index.ts'
 
 export async function initializeResources(agent: EpicMeMCP) {
-	// 🐨 create a resource called "credits" with the URI epicme://credits
-	// this tool will return a string with the credits for the creators of the app
-	// so set the description to explain that
+	// 🐨 create a resource called "tags" with the URI epicme://tags
+	// this tool will return all the tags from the database. Write a description for that.
 	// 🐨 the handler accepts the uri and returns the contents array which should
-	// have an object with mimeType text/plain, text, and uri
-	// 💰 You can use this for the text:
-	// `This app was created by ${userInfo().username}`
+	// have an object with mimeType application/json, text, and uri
+	// 💰 You can use this to get the tags
+	// `await agent.db.getTags()`
 }

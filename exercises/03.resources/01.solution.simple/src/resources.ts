@@ -3,17 +3,16 @@ import { type EpicMeMCP } from './index.ts'
 
 export async function initializeResources(agent: EpicMeMCP) {
 	agent.server.resource(
-		'credits',
-		'epicme://credits',
-		{
-			description: 'Credits for the creators of the app',
-		},
+		'tags',
+		'epicme://tags',
+		{ description: 'All tags' },
 		async (uri) => {
+			const tags = await agent.db.getTags()
 			return {
 				contents: [
 					{
-						mimeType: 'text/plain',
-						text: `This app was created by ${userInfo().username}`,
+						mimeType: 'application/json',
+						text: JSON.stringify(tags),
 						uri: uri.toString(),
 					},
 				],
