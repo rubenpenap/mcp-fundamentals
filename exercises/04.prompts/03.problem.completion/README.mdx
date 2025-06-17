@@ -1,0 +1,31 @@
+# Prompt Completion
+
+👨‍💼 As the user searches through the dynamic values it can input for the prompt,
+it would be nice to have auto-completion of values.
+
+We'll use the `completable` function to create a completable prompt.
+
+```ts
+import { completable } from '@modelcontextprotocol/sdk/server/completable.js'
+
+// ...
+
+agent.server.prompt(
+	'say_hello',
+	'Say hello to the user',
+	{
+		name: completable(
+			z.string().describe('The name of the user to say hello to'),
+			async (value) => {
+				const users = await agent.db.getUsers()
+				return users
+					.map((user) => user.name)
+					.filter((name) => name.includes(value))
+			},
+		),
+	},
+	async ({ entryId }) => {
+		// ... return prompt messages
+	},
+)
+```
