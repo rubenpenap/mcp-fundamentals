@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { createServer } from 'http'
+import { randomBytes } from 'node:crypto'
 import { styleText } from 'node:util'
 import { execa } from 'execa'
 import getPort from 'get-port'
@@ -20,15 +21,37 @@ const clientPort = await getPort({
 	exclude: [process.env.PORT, serverPort].filter(Boolean).map(Number),
 })
 
+const sessionToken = randomBytes(32).toString('hex')
 // Spawn mcp-inspector as a sidecar process
 const inspectorProcess = execa('mcp-inspector', [], {
 	env: {
 		...process.env,
 		SERVER_PORT: serverPort,
 		CLIENT_PORT: clientPort,
+		MCP_PROXY_AUTH_TOKEN: sessionToken,
+		ALLOWED_ORIGINS: [
+			`http://localhost:${clientPort}`,
+			`http://127.0.0.1:${clientPort}`,
+			`http://localhost:${process.env.PORT}`,
+			`http://127.0.0.1:${process.env.PORT}`,
+		].join(','),
 	},
 	stdio: ['inherit', 'pipe', 'inherit'], // capture stdout
 })
+
+/*
+Starting MCP inspector...
+
+⚙️ Proxy server listening on 127.0.0.1:10000
+
+🔑 Session token: 5c96a97c78de97283c838754ea89a74283d5ce87692dbe4a4903c416ae64fc6b
+Use this token to authenticate requests or set DANGEROUSLY_OMIT_AUTH=true to disable auth
+
+🔗 Open inspector with token pre-filled:
+   http://localhost:9000/?MCP_PROXY_AUTH_TOKEN=5c96a97c78de97283c838754ea89a74283d5ce87692dbe4a4903c416ae64fc6b
+   (Auto-open is disabled when authentication is enabled)
+
+*/
 
 // Wait for the inspector to be up before starting the proxy server
 function waitForInspectorReady() {
@@ -68,6 +91,7 @@ const server = createServer((req, res) => {
 		url.searchParams.set('transport', transport)
 		url.searchParams.set('serverCommand', command)
 		url.searchParams.set('serverArgs', args)
+		url.searchParams.set('MCP_PROXY_AUTH_TOKEN', sessionToken)
 		url.searchParams.set(
 			'MCP_PROXY_FULL_ADDRESS',
 			`http://localhost:${serverPort}`,
