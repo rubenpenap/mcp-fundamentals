@@ -3,8 +3,8 @@
 import { type EpicMeMCP } from './index.ts'
 
 export async function initializePrompts(agent: EpicMeMCP) {
-	// 🐨 create a prompt here called "suggest_tags" with a reasonable description
-	// 🐨 it should take an entryId as an argument
+	// 🐨 use agent.server.registerPrompt to create a prompt here called "suggest_tags" with a reasonable title and description
+	// 🐨 it should take an entryId as an argument (with argsSchema)
 	// 🐨 the callback should return a prompt message that instructs the assistant to:
 	// - lookup the journal entry with the given ID (tell it to use the get_entry tool)
 	// - look up the available tags (tell it to use the list_tags tool)

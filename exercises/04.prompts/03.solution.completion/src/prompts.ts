@@ -4,19 +4,24 @@ import { z } from 'zod'
 import { type EpicMeMCP } from './index.ts'
 
 export async function initializePrompts(agent: EpicMeMCP) {
-	agent.server.prompt(
+	agent.server.registerPrompt(
 		'suggest_tags',
-		'Suggest tags for a journal entry',
 		{
-			entryId: completable(
-				z.string().describe('The ID of the journal entry to suggest tags for'),
-				async (value) => {
-					const entries = await agent.db.getEntries()
-					return entries
-						.map((entry) => entry.id.toString())
-						.filter((id) => id.includes(value))
-				},
-			),
+			title: 'Suggest Tags',
+			description: 'Suggest tags for a journal entry',
+			argsSchema: {
+				entryId: completable(
+					z
+						.string()
+						.describe('The ID of the journal entry to suggest tags for'),
+					async (value) => {
+						const entries = await agent.db.getEntries()
+						return entries
+							.map((entry) => entry.id.toString())
+							.filter((id) => id.includes(value))
+					},
+				),
+			},
 		},
 		async ({ entryId }) => {
 			invariant(entryId, 'entryId is required')

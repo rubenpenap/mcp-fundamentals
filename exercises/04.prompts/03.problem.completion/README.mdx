@@ -10,10 +10,12 @@ import { completable } from '@modelcontextprotocol/sdk/server/completable.js'
 
 // ...
 
-agent.server.prompt(
+agent.server.registerPrompt(
 	'say_hello',
-	'Say hello to the user',
 	{
+		title: 'Say hello to the user',
+		description: 'Say hello to the user',
+		argsSchema: {
 		name: completable(
 			z.string().describe('The name of the user to say hello to'),
 			async (value) => {
@@ -24,7 +26,7 @@ agent.server.prompt(
 			},
 		),
 	},
-	async ({ entryId }) => {
+	async ({ name }) => {
 		// ... return prompt messages
 	},
 )

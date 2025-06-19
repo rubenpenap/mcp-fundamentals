@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@epic-web/invariant": "^1.0.0",
-    "@modelcontextprotocol/sdk": "^1.13.0",
+    "@modelcontextprotocol/sdk": "npm:@kentcdodds/tmp-modelcontextprotocol_sdk@1.13.1-alpha.0",
     "zod": "^3.25.67"
   },
   "devDependencies": {

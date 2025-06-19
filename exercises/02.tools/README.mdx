@@ -85,11 +85,21 @@ const server = new McpServer(
 	{ capabilities: { tools: {} }, instructions: 'A simple hello world server.' },
 )
 
-server.tool('hello', 'Say hello', async () => {
-	return {
-		content: [{ type: 'text', text: 'Hello, world!' }],
-	}
-})
+server.registerTool(
+	// llm-facing name
+	'hello',
+	{
+		// user-facing title
+		title: 'Hello',
+		// llm-facing description (clients could also display this to the user)
+		description: 'Say hello',
+	},
+	async () => {
+		return {
+			content: [{ type: 'text', text: 'Hello, world!' }],
+		}
+	},
+)
 ```
 
 Example client request:

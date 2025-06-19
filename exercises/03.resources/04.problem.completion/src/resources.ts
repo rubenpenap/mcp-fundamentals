@@ -3,10 +3,13 @@ import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { type EpicMeMCP } from './index.ts'
 
 export async function initializeResources(agent: EpicMeMCP) {
-	agent.server.resource(
+	agent.server.registerResource(
 		'tags',
 		'epicme://tags',
-		{ description: 'All tags' },
+		{
+			description: 'All tags',
+			title: 'All tags that exist in the database currently',
+		},
 		async (uri) => {
 			const tags = await agent.db.getTags()
 			return {
@@ -21,7 +24,7 @@ export async function initializeResources(agent: EpicMeMCP) {
 		},
 	)
 
-	agent.server.resource(
+	agent.server.registerResource(
 		'tag',
 		new ResourceTemplate('epicme://tags/{id}', {
 			// 🐨 add a `complete` callback for the `id` parameter
@@ -37,7 +40,10 @@ export async function initializeResources(agent: EpicMeMCP) {
 				}
 			},
 		}),
-		{ description: 'A single tag' },
+		{
+			title: 'Tag',
+			description: 'A single tag with the given ID',
+		},
 		async (uri, { id }) => {
 			const tag = await agent.db.getTag(Number(id))
 			invariant(tag, `Tag with ID "${id}" not found`)
@@ -53,7 +59,7 @@ export async function initializeResources(agent: EpicMeMCP) {
 		},
 	)
 
-	agent.server.resource(
+	agent.server.registerResource(
 		'entry',
 		new ResourceTemplate('epicme://entries/{id}', {
 			// 🐨 add a `complete` callback for the `id` parameter
@@ -69,7 +75,10 @@ export async function initializeResources(agent: EpicMeMCP) {
 				}
 			},
 		}),
-		{ description: 'A single entry' },
+		{
+			title: 'Journal Entry',
+			description: 'A single journal entry with the given ID',
+		},
 		async (uri, { id }) => {
 			const entry = await agent.db.getEntry(Number(id))
 			invariant(entry, `Entry with ID "${id}" not found`)

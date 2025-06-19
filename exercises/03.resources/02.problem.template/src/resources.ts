@@ -4,10 +4,13 @@
 import { type EpicMeMCP } from './index.ts'
 
 export async function initializeResources(agent: EpicMeMCP) {
-	agent.server.resource(
+	agent.server.registerResource(
 		'tags',
 		'epicme://tags',
-		{ description: 'All tags' },
+		{
+			title: 'Tags',
+			description: 'All tags currently in the database',
+		},
 		async (uri) => {
 			const tags = await agent.db.getTags()
 			return {
@@ -25,7 +28,7 @@ export async function initializeResources(agent: EpicMeMCP) {
 	// 🐨 create two resources with a ResourceTemplate:
 	// - entry - URI: epicme://entries/{id}
 	// - tag - URI: epicme://tags/{id}
-	// 🐨 each should have a description
+	// 🐨 each should have a title and description
 	// 🐨 each should have a callback that reads the entry or tag for the given id
 	// 🐨 return contents with mimeType application/json and the entry or tag
 	// 💯 as extra credit, handle the case where the id is not found (you can use invariant for this)

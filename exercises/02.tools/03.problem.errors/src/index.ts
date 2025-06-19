@@ -15,12 +15,15 @@ const server = new McpServer(
 	},
 )
 
-server.tool(
+server.registerTool(
 	'add',
-	'Add two numbers',
 	{
-		firstNumber: z.number().describe('The first number to add'),
-		secondNumber: z.number().describe('The second number to add'),
+		title: 'Add',
+		description: 'Add two numbers',
+		inputSchema: {
+			firstNumber: z.number().describe('The first number to add'),
+			secondNumber: z.number().describe('The second number to add'),
+		},
 	},
 	async ({ firstNumber, secondNumber }) => {
 		// 🐨 throw an error if the second number is negative

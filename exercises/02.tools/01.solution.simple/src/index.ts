@@ -14,16 +14,23 @@ const server = new McpServer(
 	},
 )
 
-server.tool('add', 'Add one and two', async () => {
-	return {
-		content: [
-			{
-				type: 'text',
-				text: `The sum of 1 and 2 is 3.`,
-			},
-		],
-	}
-})
+server.registerTool(
+	'add',
+	{
+		title: 'Add',
+		description: 'Add one and two',
+	},
+	async () => {
+		return {
+			content: [
+				{
+					type: 'text',
+					text: `The sum of 1 and 2 is 3.`,
+				},
+			],
+		}
+	},
+)
 
 async function main() {
 	const transport = new StdioServerTransport()

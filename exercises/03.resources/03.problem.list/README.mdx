@@ -6,7 +6,7 @@ implement the `list` callback for our resource templates.
 ```ts
 import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js'
 
-agent.server.resource(
+agent.server.registerResource(
 	'hello',
 	new ResourceTemplate('hello://{name}', {
 		list: async () => {

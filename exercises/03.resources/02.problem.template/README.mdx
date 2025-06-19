@@ -14,13 +14,16 @@ database:
 ```ts
 import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js'
 
-agent.server.resource(
+agent.server.registerResource(
 	'hello',
 	new ResourceTemplate('hello://{name}', {
 		// this is required to be specified, but we'll implement it later...
 		list: undefined,
 	}),
-	{ description: 'Say hello to anyone by name!' },
+	{
+		title: 'Hello',
+		description: 'Say hello to anyone by name!',
+	},
 	async (uri, { name }) => {
 		return {
 			contents: [

@@ -24,10 +24,13 @@ returning a simple value.
 Here's an example of a resource:
 
 ```ts
-agent.server.resource(
+agent.server.registerResource(
 	'hello',
 	'hello://world',
-	{ description: 'A simple hello world resource' },
+	{
+		title: 'Hello',
+		description: 'A simple hello world resource',
+	},
 	async (uri) => {
 		return {
 			contents: [

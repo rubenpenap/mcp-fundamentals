@@ -1,12 +1,14 @@
-import { userInfo } from 'node:os'
 import { type EpicMeMCP } from './index.ts'
 
 export async function initializeResources(agent: EpicMeMCP) {
-	agent.server.resource(
+	agent.server.registerResource(
 		'tags',
 		'epicme://tags',
-		{ description: 'All tags' },
-		async (uri) => {
+		{
+			title: 'Tags',
+			description: 'All tags',
+		},
+		async (uri: URL) => {
 			const tags = await agent.db.getTags()
 			return {
 				contents: [

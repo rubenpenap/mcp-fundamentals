@@ -14,10 +14,14 @@ Here's a quick example of a tool with arguments.
 ```ts
 import { z } from 'zod'
 
-server.tool(
+server.registerTool(
 	'hello',
-	'Say hello to someone',
-	{ name: z.string().describe('The name to greet') },
+	{
+		title: 'Hello',
+		description: 'Say hello to someone',
+		// llm-facing input schema (the description is for the llm)
+		inputSchema: { name: z.string().describe('The name to greet') },
+	},
 	async ({ name }) => {
 		return {
 			content: [{ type: 'text', text: `Hello, ${name}!` }],

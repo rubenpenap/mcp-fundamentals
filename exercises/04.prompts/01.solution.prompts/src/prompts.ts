@@ -2,13 +2,16 @@ import { z } from 'zod'
 import { type EpicMeMCP } from './index.ts'
 
 export async function initializePrompts(agent: EpicMeMCP) {
-	agent.server.prompt(
+	agent.server.registerPrompt(
 		'suggest_tags',
-		'Suggest tags for a journal entry',
 		{
-			entryId: z
-				.string()
-				.describe('The ID of the journal entry to suggest tags for'),
+			title: 'Suggest Tags',
+			description: 'Suggest tags for a journal entry',
+			argsSchema: {
+				entryId: z
+					.string()
+					.describe('The ID of the journal entry to suggest tags for'),
+			},
 		},
 		async ({ entryId }) => {
 			return {

@@ -14,14 +14,18 @@ const server = new McpServer(
 	},
 )
 
-server.tool(
+server.registerTool(
 	'add',
-	// 🐨 update the description to indicate this adds any two numbers
-	'Add one and two',
-	// 🐨 add an object with a firstNumber and secondNumber property
-	// 📜 These should be zod schemas https://zod.dev/
+	{
+		title: 'Add',
+		// 🐨 update the description to indicate this adds any two numbers
+		description: 'Add one and two',
+		// 🐨 add an inputSchema object with a firstNumber and secondNumber property
+		// 📜 These should be zod schemas https://zod.dev/
+		// 💯 add descriptions for the llm to know what they're for
+	},
+	// 🐨 accept an object parameter with a firstNumber and secondNumber property
 	async () => {
-		// 🐨 accept an object parameter with a firstNumber and secondNumber property
 		return {
 			content: [
 				{

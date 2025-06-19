@@ -5,16 +5,19 @@ import { z } from 'zod'
 import { type EpicMeMCP } from './index.ts'
 
 export async function initializePrompts(agent: EpicMeMCP) {
-	agent.server.prompt(
+	agent.server.registerPrompt(
 		'suggest_tags',
-		'Suggest tags for a journal entry',
 		{
-			// 🐨 make this completable with the `completable` function
-			entryId: z
-				.string()
-				.describe('The ID of the journal entry to suggest tags for'),
-			// 🐨 the second argument to completable should be a function that returns an array of strings
-			// that match the value. Use await agent.db.getEntries() to get available entries and match on the id.
+			title: 'Suggest Tags',
+			description: 'Suggest tags for a journal entry',
+			argsSchema: {
+				// 🐨 make this completable with the `completable` function
+				entryId: z
+					.string()
+					.describe('The ID of the journal entry to suggest tags for'),
+				// 🐨 the second argument to completable should be a function that returns an array of strings
+				// that match the value. Use await agent.db.getEntries() to get available entries and match on the id.
+			},
 		},
 		async ({ entryId }) => {
 			invariant(entryId, 'entryId is required')
