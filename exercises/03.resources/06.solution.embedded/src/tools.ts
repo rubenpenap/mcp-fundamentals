@@ -23,14 +23,9 @@ export async function initializeTools(agent: EpicMeMCP) {
 					})
 				}
 			}
-			return {
-				content: [
-					createTextContent(
-						`Entry "${createdEntry.title}" created successfully with ID "${createdEntry.id}"`,
-					),
-					createEntryResourceLinkContent(createdEntry),
-				],
-			}
+			return createReply(
+				`Entry "${createdEntry.title}" created successfully with ID "${createdEntry.id}"`,
+			)
 		},
 	)
 
@@ -47,7 +42,16 @@ export async function initializeTools(agent: EpicMeMCP) {
 			const entry = await agent.db.getEntry(id)
 			invariant(entry, `Entry with ID "${id}" not found`)
 			return {
-				content: [createEntryResourceContent(entry)],
+				content: [
+					{
+						type: 'resource',
+						resource: {
+							uri: `epicme://entries/${entry.id}`,
+							mimeType: 'application/json',
+							text: JSON.stringify(entry),
+						},
+					},
+				],
 			}
 		},
 	)
@@ -119,14 +123,9 @@ export async function initializeTools(agent: EpicMeMCP) {
 			const existingEntry = await agent.db.getEntry(id)
 			invariant(existingEntry, `Entry with ID "${id}" not found`)
 			const updatedEntry = await agent.db.updateEntry(id, updates)
-			return {
-				content: [
-					createTextContent(
-						`Entry "${updatedEntry.title}" (ID: ${id}) updated successfully`,
-					),
-					createEntryResourceLinkContent(updatedEntry),
-				],
-			}
+			return createReply(
+				`Entry "${updatedEntry.title}" (ID: ${id}) updated successfully`,
+			)
 		},
 	)
 
@@ -143,13 +142,9 @@ export async function initializeTools(agent: EpicMeMCP) {
 			const existingEntry = await agent.db.getEntry(id)
 			invariant(existingEntry, `Entry with ID "${id}" not found`)
 			await agent.db.deleteEntry(id)
-			return {
-				content: [
-					createTextContent(
-						`Entry "${existingEntry.title}" (ID: ${id}) deleted successfully`,
-					),
-				],
-			}
+			return createReply(
+				`Entry "${existingEntry.title}" (ID: ${id}) deleted successfully`,
+			)
 		},
 	)
 
@@ -165,10 +160,17 @@ export async function initializeTools(agent: EpicMeMCP) {
 			const createdTag = await agent.db.createTag(tag)
 			return {
 				content: [
-					createTextContent(
-						`Tag "${createdTag.name}" created successfully with ID "${createdTag.id}"`,
-					),
-					createTagResourceContent(createdTag),
+					{
+						type: 'text',
+						text: `Tag "${createdTag.name}" created successfully with ID "${createdTag.id}"`,
+					},
+					{
+						type: 'resource_link',
+						uri: `epicme://tags/${createdTag.id}`,
+						name: createdTag.name,
+						description: createdTag.description ?? undefined,
+						mimeType: 'application/json',
+					},
 				],
 			}
 		},
@@ -186,9 +188,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 		async ({ id }) => {
 			const tag = await agent.db.getTag(id)
 			invariant(tag, `Tag ID "${id}" not found`)
-			return {
-				content: [createTagResourceContent(tag)],
-			}
+			return createReply(tag)
 		},
 	)
 
@@ -221,14 +221,9 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 		async ({ id, ...updates }) => {
 			const updatedTag = await agent.db.updateTag(id, updates)
-			return {
-				content: [
-					createTextContent(
-						`Tag "${updatedTag.name}" (ID: ${id}) updated successfully`,
-					),
-					createTagResourceContent(updatedTag),
-				],
-			}
+			return createReply(
+				`Tag "${updatedTag.name}" (ID: ${id}) updated successfully`,
+			)
 		},
 	)
 
@@ -245,14 +240,9 @@ export async function initializeTools(agent: EpicMeMCP) {
 			const existingTag = await agent.db.getTag(id)
 			invariant(existingTag, `Tag ID "${id}" not found`)
 			await agent.db.deleteTag(id)
-			return {
-				content: [
-					createTextContent(
-						`Tag "${existingTag.name}" (ID: ${id}) deleted successfully`,
-					),
-					createTagResourceContent(existingTag),
-				],
-			}
+			return createReply(
+				`Tag "${existingTag.name}" (ID: ${id}) deleted successfully`,
+			)
 		},
 	)
 
@@ -276,15 +266,9 @@ export async function initializeTools(agent: EpicMeMCP) {
 				entryId,
 				tagId,
 			})
-			return {
-				content: [
-					createTextContent(
-						`Tag "${tag.name}" (ID: ${entryTag.tagId}) added to entry "${entry.title}" (ID: ${entryTag.entryId}) successfully`,
-					),
-					createTagResourceLinkContent(tag),
-					createEntryResourceLinkContent(entry),
-				],
-			}
+			return createReply(
+				`Tag "${tag.name}" (ID: ${entryTag.tagId}) added to entry "${entry.title}" (ID: ${entryTag.entryId}) successfully`,
+			)
 		},
 	)
 }
@@ -296,61 +280,5 @@ function createReply(text: any): CallToolResult {
 		return {
 			content: [{ type: 'text', text: JSON.stringify(text) }],
 		}
-	}
-}
-function createTextContent(text: unknown): CallToolResult['content'][number] {
-	if (typeof text === 'string') {
-		return { type: 'text', text }
-	} else {
-		return { type: 'text', text: JSON.stringify(text) }
-	}
-}
-
-type ResourceContent = CallToolResult['content'][number]
-
-function createEntryResourceLinkContent(entry: {
-	id: number
-	title: string
-}): ResourceContent {
-	return {
-		type: 'resource_link',
-		uri: `epicme://entries/${entry.id}`,
-		name: entry.title,
-		mimeType: 'application/json',
-	}
-}
-
-function createEntryResourceContent(entry: { id: number }): ResourceContent {
-	return {
-		type: 'resource',
-		resource: {
-			uri: `epicme://entries/${entry.id}`,
-			mimeType: 'application/json',
-			text: JSON.stringify(entry),
-		},
-	}
-}
-
-function createTagResourceLinkContent(tag: {
-	id: number
-	name: string
-	description: string | null
-}): ResourceContent {
-	return {
-		type: 'resource_link',
-		uri: `epicme://tags/${tag.id}`,
-		name: tag.name,
-		description: tag.description ?? undefined,
-		mimeType: 'application/json',
-	}
-}
-function createTagResourceContent(tag: { id: number }): ResourceContent {
-	return {
-		type: 'resource',
-		resource: {
-			uri: `epicme://tags/${tag.id}`,
-			mimeType: 'application/json',
-			text: JSON.stringify(tag),
-		},
 	}
 }

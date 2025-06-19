@@ -1,0 +1,29 @@
+# Embedded Resources
+
+👨‍💼 Right now we have a `get_entry` tool that returns a journal entry. So LLMs
+can decide to get the entry details if it's relevant to the task. We also have
+a resource for getting entries by IDs as well.
+
+The MCP spec has a `resource` content type that allows you to embed resources
+in tool responses. So instead of just returning the entry details, we can
+include the entry resource in the response so the MCP client can subscribe to it
+or request it again in the future.
+
+Here's an example of the content type if we were to embed a taco resource:
+
+```json
+{
+	"type": "resource",
+	"resource": {
+		"uri": "taco://ingredients/1",
+		"mimeType": "application/json",
+		"text": "{\"name\": \"Lettuce\", \"description\": \"A delicious lettuce ingredient\"}"
+	}
+}
+```
+
+Let's update the `get_entry` tool to embed the entry resource in the response.
+Test this out by using the `get_entry` tool and make sure it shows the resource
+info in the response.
+
+📜 [MCP Spec: Tools (Embedded Resources)](https://modelcontextprotocol.io/specification/2025-06-18/server/tools#embedded-resources)

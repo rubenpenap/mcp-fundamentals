@@ -33,7 +33,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 					createTextContent(
 						`Entry "${createdEntry.title}" created successfully with ID "${createdEntry.id}"`,
 					),
-					createEntryResourceContent(createdEntry),
+					createEntryResourceLinkContent(createdEntry),
 				],
 			}
 		},
@@ -129,7 +129,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 					createTextContent(
 						`Entry "${updatedEntry.title}" (ID: ${id}) updated successfully`,
 					),
-					createEntryResourceContent(updatedEntry),
+					createEntryResourceLinkContent(updatedEntry),
 				],
 			}
 		},
@@ -153,7 +153,6 @@ export async function initializeTools(agent: EpicMeMCP) {
 					createTextContent(
 						`Entry "${existingEntry.title}" (ID: ${id}) deleted successfully`,
 					),
-					createEntryResourceContent(existingEntry),
 				],
 			}
 		},
@@ -287,8 +286,8 @@ export async function initializeTools(agent: EpicMeMCP) {
 					createTextContent(
 						`Tag "${tag.name}" (ID: ${entryTag.tagId}) added to entry "${entry.title}" (ID: ${entryTag.entryId}) successfully`,
 					),
-					createTagResourceContent(tag),
-					createEntryResourceContent(entry),
+					createTagResourceLinkContent(tag),
+					createEntryResourceLinkContent(entry),
 				],
 			}
 		},
@@ -314,6 +313,18 @@ function createTextContent(text: unknown): CallToolResult['content'][number] {
 
 type ResourceContent = CallToolResult['content'][number]
 
+function createEntryResourceLinkContent(entry: {
+	id: number
+	title: string
+}): ResourceContent {
+	return {
+		type: 'resource_link',
+		uri: `epicme://entries/${entry.id}`,
+		name: entry.title,
+		mimeType: 'application/json',
+	}
+}
+
 function createEntryResourceContent(entry: { id: number }): ResourceContent {
 	return {
 		type: 'resource',
@@ -325,6 +336,19 @@ function createEntryResourceContent(entry: { id: number }): ResourceContent {
 	}
 }
 
+function createTagResourceLinkContent(tag: {
+	id: number
+	name: string
+	description: string | null
+}): ResourceContent {
+	return {
+		type: 'resource_link',
+		uri: `epicme://tags/${tag.id}`,
+		name: tag.name,
+		description: tag.description ?? undefined,
+		mimeType: 'application/json',
+	}
+}
 function createTagResourceContent(tag: { id: number }): ResourceContent {
 	return {
 		type: 'resource',
