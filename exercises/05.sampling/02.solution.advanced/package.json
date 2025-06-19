@@ -16,8 +16,8 @@
   },
   "dependencies": {
     "@epic-web/invariant": "^1.0.0",
-    "@modelcontextprotocol/sdk": "^1.12.3",
-    "zod": "^3.25.64"
+    "@modelcontextprotocol/sdk": "^1.13.0",
+    "zod": "^3.25.67"
   },
   "devDependencies": {
     "@epic-web/config": "^1.21.0",
@@ -27,7 +27,7 @@
     "@types/node": "^24.0.3",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3",
-    "vitest": "^3.2.3"
+    "vitest": "^3.2.4"
   },
   "license": "GPL-3.0-only"
 }
