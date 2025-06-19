@@ -7,7 +7,7 @@ export async function initializeResources(agent: EpicMeMCP) {
 		'tags',
 		'epicme://tags',
 		{
-			title: 'All tags',
+			title: 'Tags',
 			description: 'All tags currently in the database',
 		},
 		async (uri) => {
@@ -31,7 +31,7 @@ export async function initializeResources(agent: EpicMeMCP) {
 		}),
 		{
 			title: 'Tag',
-			description: 'A tag by ID',
+			description: 'A single tag with the given ID',
 		},
 		async (uri, { id }) => {
 			const tag = await agent.db.getTag(Number(id))
@@ -54,8 +54,8 @@ export async function initializeResources(agent: EpicMeMCP) {
 			list: undefined,
 		}),
 		{
-			title: 'Entry',
-			description: 'A single entry',
+			title: 'Journal Entry',
+			description: 'A single journal entry with the given ID',
 		},
 		async (uri, { id }) => {
 			const entry = await agent.db.getEntry(Number(id))

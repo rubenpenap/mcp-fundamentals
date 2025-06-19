@@ -153,11 +153,12 @@ export async function initializeTools(agent: EpicMeMCP) {
 						type: 'text',
 						text: `Tag "${createdTag.name}" created successfully with ID "${createdTag.id}"`,
 					},
-					// 🐨 add a resource of the tag. It should have "type" of "resource"
-					// and a "resource" object with the following properties:
+					// 🐨 add a resource_link of the tag. It should have
+					// - "type" of "resource_link"
 					// - "uri": a string that is the same as the tag ID
+					// - "name": a string that is the name of the tag
+					// - "description": a string that is the description of the tag (💰 use `tag.description ?? undefined` to handle type issues)
 					// - "mimeType": a string that is "application/json"
-					// - "text": a string that is the JSON representation of the tag
 				],
 			}
 		},

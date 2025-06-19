@@ -154,12 +154,11 @@ export async function initializeTools(agent: EpicMeMCP) {
 						text: `Tag "${createdTag.name}" created successfully with ID "${createdTag.id}"`,
 					},
 					{
-						type: 'resource',
-						resource: {
-							uri: `epicme://tags/${createdTag.id}`,
-							mimeType: 'application/json',
-							text: JSON.stringify(createdTag),
-						},
+						type: 'resource_link',
+						uri: `epicme://tags/${createdTag.id}`,
+						name: createdTag.name,
+						description: createdTag.description ?? undefined,
+						mimeType: 'application/json',
 					},
 				],
 			}

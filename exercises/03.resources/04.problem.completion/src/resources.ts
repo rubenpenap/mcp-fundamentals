@@ -7,8 +7,8 @@ export async function initializeResources(agent: EpicMeMCP) {
 		'tags',
 		'epicme://tags',
 		{
-			description: 'All tags',
-			title: 'All tags that exist in the database currently',
+			title: 'Tags',
+			description: 'All tags currently in the database',
 		},
 		async (uri) => {
 			const tags = await agent.db.getTags()
