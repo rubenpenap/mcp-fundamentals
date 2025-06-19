@@ -25,25 +25,25 @@ It may be helpful for you to watch a demo of this working:
 
 Here's a sequence diagram for this:
 
-````mermaid
+```mermaid
 sequenceDiagram
-    participant User
-    participant App
-    participant LLM
-    participant Client
-    participant Server
-    Server->>Client: Create sampling request (system prompt, messages)
-    Client->>App: Request permission for sampling
-    App->>User: Request permission for sampling
-    alt User approves
-        App->>Client: Permission granted
-        Client->>LLM: Forward sampling request
-        LLM-->>Client: Generation (completion)
-        Client-->>Server: Sampling result
-    else User rejects
-        App->>Client: Permission denied
-        Client-->>Server: Sampling rejected
-    end
+	participant User
+	participant App
+	participant LLM
+	participant Client
+	participant Server
+	Server->>Client: Create sampling request (system prompt, messages)
+	Client->>App: Request permission for sampling
+	App->>User: Request permission for sampling
+	alt User approves
+		App->>Client: Permission granted
+		Client->>LLM: Forward sampling request
+		LLM-->>Client: Generation (completion)
+		Client-->>Server: Sampling result
+	else User rejects
+		App->>Client: Permission denied
+		Client-->>Server: Sampling rejected
+	end
 ```
 
 Here's a simple example of a sampling request and response using MCP:
@@ -68,7 +68,7 @@ Here's a simple example of a sampling request and response using MCP:
 		"maxTokens": 20
 	}
 }
-````
+```
 
 ```json
 // Response

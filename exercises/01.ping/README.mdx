@@ -29,10 +29,10 @@ connection by spawning a new process and then use STDIO to communicate with it.
 
 ```mermaid
 sequenceDiagram
-    participant Client
-    participant Server
-    Client->>Server: JSON-RPC Request {"method": "ping"}
-    Server-->>Client: JSON-RPC Response {"result": {}}
+	participant Client
+	participant Server
+	Client->>Server: JSON-RPC Request {"method": "ping"}
+	Server-->>Client: JSON-RPC Response {"result": {}}
 ```
 
 A "ping" is a common concept in protocol design. It's a simple request to check

@@ -26,24 +26,24 @@ Here's what this user experience may feel like.
 
 ```mermaid
 sequenceDiagram
-    participant User
-    participant App
-    participant LLM
-    participant Client
-    participant Server
-    User->>App: Request to view resources
-    App->>Client: List resources (e.g., entries/tags)
-    Client->>Server: resources/list
-    Server-->>Client: List of resources (URIs, metadata)
-    Client-->>App: List of resources
-    App-->>User: Show available resources
-    User->>App: Select resource to view
-    App->>Client: Read resource
-    Client->>Server: resources/read (with URI)
-    Server-->>Client: Resource contents (data, metadata)
-    Client-->>App: Resource contents
-    App-->>User: Display resource data
-    Note over App,Server: Tool responses can embed resource references for richer context
+	participant User
+	participant App
+	participant LLM
+	participant Client
+	participant Server
+	User->>App: Request to view resources
+	App->>Client: List resources (e.g., entries/tags)
+	Client->>Server: resources/list
+	Server-->>Client: List of resources (URIs, metadata)
+	Client-->>App: List of resources
+	App-->>User: Show available resources
+	User->>App: Select resource to view
+	App->>Client: Read resource
+	Client->>Server: resources/read (with URI)
+	Server-->>Client: Resource contents (data, metadata)
+	Client-->>App: Resource contents
+	App-->>User: Display resource data
+	Note over App,Server: Tool responses can embed resource references for richer context
 ```
 
 <callout-warning>

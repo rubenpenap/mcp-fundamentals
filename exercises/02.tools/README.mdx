@@ -28,10 +28,10 @@ out my post
 
 ```mermaid
 sequenceDiagram
-    participant Client
-    participant Server
-    Client->>Server: JSON-RPC Request {"method": "tools/call", "params": {"name": "hello", "arguments": {}}}
-    Server-->>Client: JSON-RPC Response {"result": {"content": [{"type": "text", "text": "Hello, world!"}]}}
+	participant Client
+	participant Server
+	Client->>Server: JSON-RPC Request {"method": "tools/call", "params": {"name": "hello", "arguments": {}}}
+	Server-->>Client: JSON-RPC Response {"result": {"content": [{"type": "text", "text": "Hello, world!"}]}}
 ```
 
 For trust and safety, MCP encourages a "human-in-the-loop" approach: users
@@ -43,30 +43,30 @@ The whole flow looks something like this:
 
 ```mermaid
 sequenceDiagram
-    participant User
-    participant App
-    participant LLM
-    participant Client
-    participant Server
-    User->>App: Enter prompt
-    App->>LLM: Send prompt
-    loop Tool call(s) until generation
-        LLM-->>App: Tool call request
-        App->>User: Human-in-the-loop confirmation
-        alt User confirms
-            App->>Client: Forward tool call
-            Client->>Server: JSON-RPC tool call
-            Server-->>Client: JSON-RPC response
-            Client-->>App: Tool call result
-            App->>LLM: Tool call result
-            LLM-->>App: Generation
-            App-->>User: Display response
-        else User rejects
-            App->>LLM: Rejection (skip tool call)
-        end
-    end
-    LLM-->>App: Generation (final response)
-    App-->>User: Display response
+	participant User
+	participant App
+	participant LLM
+	participant Client
+	participant Server
+	User->>App: Enter prompt
+	App->>LLM: Send prompt
+	loop Tool call(s) until generation
+		LLM-->>App: Tool call request
+		App->>User: Human-in-the-loop confirmation
+		alt User confirms
+			App->>Client: Forward tool call
+			Client->>Server: JSON-RPC tool call
+			Server-->>Client: JSON-RPC response
+			Client-->>App: Tool call result
+			App->>LLM: Tool call result
+			LLM-->>App: Generation
+			App-->>User: Display response
+		else User rejects
+			App->>LLM: Rejection (skip tool call)
+		end
+	end
+	LLM-->>App: Generation (final response)
+	App-->>User: Display response
 ```
 
 <callout-warning>

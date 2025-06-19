@@ -31,25 +31,25 @@ Here's an example of how the user experience might look:
 
 ```mermaid
 sequenceDiagram
-    participant User
-    participant App
-    participant LLM
-    participant Client
-    participant Server
-    User->>App: Open prompt menu
-    App->>Client: Request available prompts
-    Client->>Server: List prompts
-    Server-->>Client: Prompts list
-    Client-->>App: Prompts list
-    App-->>User: Show prompts
-    User->>App: Select prompt & provide arguments
-    App->>Client: Get prompt template
-    Client->>Server: Get prompt template
-    Server-->>Client: Prompt template
-    Client-->>App: Prompt template
-    App->>LLM: Fill prompt & invoke
-    LLM-->>App: Prompt messages (structured)
-    App-->>User: Show LLM response
+	participant User
+	participant App
+	participant LLM
+	participant Client
+	participant Server
+	User->>App: Open prompt menu
+	App->>Client: Request available prompts
+	Client->>Server: List prompts
+	Server-->>Client: Prompts list
+	Client-->>App: Prompts list
+	App-->>User: Show prompts
+	User->>App: Select prompt & provide arguments
+	App->>Client: Get prompt template
+	Client->>Server: Get prompt template
+	Server-->>Client: Prompt template
+	Client-->>App: Prompt template
+	App->>LLM: Fill prompt & invoke
+	LLM-->>App: Prompt messages (structured)
+	App-->>User: Show LLM response
 ```
 
 <callout-warning>
