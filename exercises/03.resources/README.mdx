@@ -43,6 +43,8 @@ sequenceDiagram
 	Server-->>Client: Resource contents (data, metadata)
 	Client-->>App: Resource contents
 	App-->>User: Display resource data
+	User->>App: Send a prompt
+	App->>LLM: Forward prompt with resource
 	Note over App,Server: Tool responses can embed resource references for richer context
 ```
 
