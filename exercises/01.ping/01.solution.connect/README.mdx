@@ -30,27 +30,68 @@ const args = [
 const child = spawn(command, args)
 ```
 
-Then it listens for messages from the child process and sends them to the MCP
-server:
+Once started, the client and server communicate by sending and receiving messages through standard input and output (stdio). These messages follow the JSON-RPC format, which is a standard way to structure requests and responses.
+
+### Example: Ping Request and Response
+
+Suppose the client wants to check if the server is running. It sends a `ping` request to the server by writing a line of JSON to the server's standard input:
+
+```json
+{ "jsonrpc": "2.0", "id": "123", "method": "ping" }
+```
+
+The server reads this line from its standard input, processes the request, and writes a response to its standard output:
+
+```json
+{ "jsonrpc": "2.0", "id": "123", "result": {} }
+```
+
+This is a typical request-response cycle:
+
+- The **client** writes a request (like `ping`) to the server's stdin.
+- The **server** reads the request, processes it, and writes a response to stdout.
+- The **client** reads the response from the server's stdout.
+
+Here's a simplified TypeScript example of how this might look in code:
 
 ```ts
+// Client sends a ping request
+child.stdin.write(
+	JSON.stringify({ jsonrpc: '2.0', id: '123', method: 'ping' }) + '\n',
+)
+
+// Client listens for the response
 child.stdout.on('data', (data) => {
-	console.log(data)
+	console.log('Received from server:', data.toString())
+	// Should log: {"jsonrpc": "2.0", "id": "123", "result": {}}
 })
 ```
 
-This is why we use `console.error` in our server, so that the MCP Client can
-print it to the console without interfering with the server's output.
+> **Note:** Each message is typically sent as a single line of JSON, so a newline character (`\n`) is used to separate messages.
 
-It also listens for messages from the MCP server and sends them to the child
-process:
+#### ⚠️ What happens if you use `console.log` for logging?
+
+If your server uses `console.log` for regular logging, those log messages will be sent to standard output (stdout) along with your protocol messages. This can confuse the client, which expects only valid JSON-RPC messages on stdout.
+
+For example, if your server does this:
 
 ```ts
-child.stdin.write(JSON.stringify({ jsonrpc: '2.0', method: 'ping' }))
+console.log('Server started!')
 ```
 
+Then the output on stdout might look like:
+
+```
+Server started!
+{"jsonrpc": "2.0", "id": "123", "result": {}}
+```
+
+When the client tries to read and parse the response, it will encounter the plain text `Server started!` and likely throw a parsing error, because it expects only JSON.
+
+That's why you should use `console.error` for logging and debugging output. Standard error (stderr) is separate from stdout, so log messages won't interfere with the protocol communication.
+
 Other transport mechanisms exist as well, and while the code for them is
-different the underlying concept is the same. Just a server and client
-communicating with each other.
+different the underlying concept is the same: a server and client
+communicating with each other using a standard protocol.
 
 </details>
