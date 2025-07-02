@@ -12,36 +12,24 @@ standardizes how LLMs (Large Language Models) access context, resources, and
 capabilities from a wide variety of sources.
 
 ```mermaid
-graph LR
-	subgraph "Application Host Process"
-		H[Host]
-		C1[Client 1]
-		C2[Client 2]
-		C3[Client 3]
-		H --> C1
-		H --> C2
-		H --> C3
-	end
-
-	subgraph "Local machine"
-		S1[Server 1<br>Files & Git]
-		S2[Server 2<br>Database]
-		R1[("Local<br>Resource A")]
-		R2[("Local<br>Resource B")]
-
-		C1 --> S1
-		C2 --> S2
-		S1 <--> R1
-		S2 <--> R2
-	end
-
-	subgraph "Internet ."
-		S3[Server 3<br>External APIs]
-		R3[("Remote<br>Resource C")]
-
-		C3 --> S3
-		S3 <--> R3
-	end
+flowchart LR
+    subgraph "Your Computer"
+        Host["Host with MCP Client<br/>(Claude, IDEs, Tools)"]
+        S1["MCP Server A"]
+        S2["MCP Server B"]
+        D1[("Local<br/>Data Source A")]
+        Host <-->|"MCP Protocol"| S1
+        Host <-->|"MCP Protocol"| S2
+        S1 <--> D1
+    end
+    subgraph "Internet ."
+        S3["MCP Server C"]
+        D2[("Remote<br/>Service B")]
+        D3[("Remote<br/>Service C")]
+        S2 <-->|"Web APIs"| D2
+        S3 <-->|"Web APIs"| D3
+    end
+    Host <-->|"MCP Protocol"| S3
 ```
 
 Throughout this workshop, you'll learn:
