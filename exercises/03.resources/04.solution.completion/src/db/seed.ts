@@ -4,17 +4,9 @@ import { DB } from './index.js'
 
 async function seed() {
 	const dbPath = path.join(process.cwd(), 'db.sqlite')
-	const dbExists = await fs.stat(dbPath).then(
-		() => true,
-		() => false,
-	)
-	// delete the db file if it exists
-	if (dbExists) await fs.unlink(dbPath)
+	await fs.unlink(dbPath).catch(() => {})
 
 	const db = DB.getInstance(dbPath)
-
-	// Helper to run raw SQL (DB class does not expose this, so we use createTag etc. for clearing)
-	// We'll clear by deleting all entries via getEntries/getTags and deleteEntry/deleteTag
 
 	// Delete all entry_tags by deleting entries and tags (should cascade if foreign keys are set)
 	const entries = await db.getEntries()
