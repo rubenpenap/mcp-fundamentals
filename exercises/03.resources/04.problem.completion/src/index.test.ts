@@ -120,9 +120,9 @@ test('Resource Template Completions', async () => {
 
 	try {
 		// Test completion functionality using the proper MCP SDK method
-		const completionResult = await (client as any).completeResource({
+		const completionResult = await client.complete({
 			ref: {
-				type: 'resource',
+				type: 'ref/resource',
 				uri: entriesTemplate.uriTemplate,
 			},
 			argument: {
