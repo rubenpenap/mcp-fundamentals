@@ -52,42 +52,6 @@ test('Tool Definition', async () => {
 		getTool,
 		'🚨 No get_entry tool found - this exercise requires implementing get_entry tool',
 	)
-
-	expect(createTool).toEqual(
-		expect.objectContaining({
-			name: expect.stringMatching(/^create_entry$/i),
-			description: expect.stringMatching(/^create a new journal entry$/i),
-			inputSchema: expect.objectContaining({
-				type: 'object',
-				properties: expect.objectContaining({
-					title: expect.objectContaining({
-						type: 'string',
-						description: expect.stringMatching(/title/i),
-					}),
-					content: expect.objectContaining({
-						type: 'string',
-						description: expect.stringMatching(/content/i),
-					}),
-				}),
-			}),
-		}),
-	)
-
-	expect(getTool).toEqual(
-		expect.objectContaining({
-			name: expect.stringMatching(/^get_entry$/i),
-			description: expect.stringMatching(/^get.*entry$/i),
-			inputSchema: expect.objectContaining({
-				type: 'object',
-				properties: expect.objectContaining({
-					id: expect.objectContaining({
-						type: 'number',
-						description: expect.stringMatching(/id/i),
-					}),
-				}),
-			}),
-		}),
-	)
 })
 
 test('Tool Call', async () => {

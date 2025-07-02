@@ -81,12 +81,13 @@ test('Tool Call', async () => {
 })
 
 test('Resource Link in Tool Response', async () => {
+	let result: any
 	try {
-		const result = await client.callTool({
-			name: 'create_entry',
+		result = await client.callTool({
+			name: 'create_tag',
 			arguments: {
-				title: 'Linked Entry Test',
-				content: 'This entry should be linked as a resource',
+				name: 'Linked Tag Test',
+				description: 'This tag should be linked as a resource',
 			},
 		})
 
@@ -130,20 +131,26 @@ test('Resource Link in Tool Response', async () => {
 			'🚨 Resource link name must be a string',
 		)
 		invariant(
-			resourceLink.uri.includes('entries'),
-			'🚨 Resource link URI should reference the created entry',
+			resourceLink.uri.includes('tags'),
+			'🚨 Resource link URI should reference the created tag',
 		)
 
 		expect(resourceLink).toEqual(
 			expect.objectContaining({
 				type: 'resource_link',
-				uri: expect.stringMatching(/epicme:\/\/entries\/\d+/),
-				name: expect.stringMatching(/Linked Entry Test/),
+				uri: expect.stringMatching(/epicme:\/\/tags\/\d+/),
+				name: expect.stringMatching(/Linked Tag Test/),
 				description: expect.any(String),
 				mimeType: expect.stringMatching(/application\/json/),
 			}),
 		)
 	} catch (error) {
+		if (typeof result !== 'undefined' && result.content) {
+			console.error(
+				'🚨 Actual content:',
+				JSON.stringify(result.content, null, 2),
+			)
+		}
 		console.error('🚨 Resource linking not implemented in tool responses!')
 		console.error(
 			'🚨 This exercise teaches you how to include resource links in tool responses',
@@ -155,10 +162,10 @@ test('Resource Link in Tool Response', async () => {
 		console.error('🚨   2. Set type: "resource_link" in the response content')
 		console.error('🚨   3. Include uri, name, description, and mimeType fields')
 		console.error(
-			'🚨   4. The URI should point to the created resource (e.g., epicme://entries/1)',
+			'🚨   4. The URI should point to the created resource (e.g., epicme://tags/1)',
 		)
 		console.error(
-			'🚨 Example: { type: "resource_link", uri: "epicme://entries/1", name: "My Entry", description: "...", mimeType: "application/json" }',
+			'🚨 Example: { type: "resource_link", uri: "epicme://tags/1", name: "My Tag", description: "...", mimeType: "application/json" }',
 		)
 		throw new Error(
 			`🚨 Tool should include resource_link content type when creating resources. ${error}`,

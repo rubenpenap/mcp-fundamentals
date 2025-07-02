@@ -102,46 +102,96 @@ test('Sampling', async () => {
 		return messageResultDeferred.promise
 	})
 
-	const entry = {
-		title: faker.lorem.words(3),
-		content: faker.lorem.paragraphs(2),
-	}
-	await client.callTool({
-		name: 'create_entry',
-		arguments: entry,
-	})
-	const request = await messageRequestDeferred.promise
+	try {
+		const entry = {
+			title: faker.lorem.words(3),
+			content: faker.lorem.paragraphs(2),
+		}
+		await client.callTool({
+			name: 'create_entry',
+			arguments: entry,
+		})
 
-	expect(request).toEqual(
-		expect.objectContaining({
-			method: 'sampling/createMessage',
-			params: expect.objectContaining({
-				maxTokens: expect.any(Number),
-				systemPrompt: expect.any(String),
-				messages: expect.arrayContaining([
-					expect.objectContaining({
-						role: 'user',
-						content: expect.objectContaining({
-							type: 'text',
-							text: expect.any(String),
-							mimeType: 'text/plain',
+		// Add a timeout wrapper to detect if sampling isn't working
+		const timeoutPromise = new Promise<never>((_, reject) => {
+			setTimeout(() => {
+				reject(
+					new Error(
+						'🚨 Sampling timeout - server did not send a sampling request',
+					),
+				)
+			}, 3000) // Shorter timeout for better UX
+		})
+
+		const request = await Promise.race([
+			messageRequestDeferred.promise,
+			timeoutPromise,
+		])
+
+		expect(request).toEqual(
+			expect.objectContaining({
+				method: 'sampling/createMessage',
+				params: expect.objectContaining({
+					maxTokens: expect.any(Number),
+					systemPrompt: expect.any(String),
+					messages: expect.arrayContaining([
+						expect.objectContaining({
+							role: 'user',
+							content: expect.objectContaining({
+								type: 'text',
+								text: expect.any(String),
+								mimeType: 'text/plain',
+							}),
 						}),
-					}),
-				]),
+					]),
+				}),
 			}),
-		}),
-	)
+		)
 
-	messageResultDeferred.resolve({
-		model: 'stub-model',
-		stopReason: 'endTurn',
-		role: 'assistant',
-		content: {
-			type: 'text',
-			text: 'Congratulations!',
-		},
-	})
+		messageResultDeferred.resolve({
+			model: 'stub-model',
+			stopReason: 'endTurn',
+			role: 'assistant',
+			content: {
+				type: 'text',
+				text: 'Congratulations!',
+			},
+		})
 
-	// give the server a chance to process the result
-	await new Promise((resolve) => setTimeout(resolve, 100))
-})
+		// give the server a chance to process the result
+		await new Promise((resolve) => setTimeout(resolve, 100))
+	} catch (error: any) {
+		if (
+			error.message?.includes('Sampling timeout') ||
+			error.message?.includes('Test timed out')
+		) {
+			console.error('🚨 Sampling capability not implemented!')
+			console.error(
+				'🚨 This exercise requires you to trigger a sampling (completion) request to the LLM when a new journal entry is created.',
+			)
+			console.error('🚨 You need to:')
+			console.error(
+				'🚨   1. Implement a function that sends a sampling request using agent.server.server.createMessage after creating a journal entry.',
+			)
+			console.error(
+				'🚨   2. Use a simple system prompt (e.g., "You are a helpful assistant.") and a user message referencing the new entry\'s ID.',
+			)
+			console.error(
+				'🚨   3. Set a reasonable maxTokens value for the response.',
+			)
+			console.error(
+				"🚨   4. Log the result to the console so you can inspect the model's output.",
+			)
+			console.error(
+				'🚨 Check that your tool implementation includes a call to agent.server.server.createMessage after creating an entry.',
+			)
+			const enhancedError = new Error(
+				'🚨 Sampling capability required. Tool should send LLM requests after creating entries. ' +
+					(error.message || error),
+			)
+			enhancedError.stack = error.stack
+			throw enhancedError
+		}
+		throw error
+	}
+}, 10000) // Increase overall test timeout
