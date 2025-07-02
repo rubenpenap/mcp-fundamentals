@@ -46,15 +46,15 @@ test('Tool Definition', async () => {
 			}),
 		}),
 	)
-	
+
 	// 🚨 Proactive check: Ensure the tool schema includes both required arguments
 	invariant(
 		firstTool.inputSchema?.properties?.firstNumber,
-		'🚨 Tool must have firstNumber parameter defined'
+		'🚨 Tool must have firstNumber parameter defined',
 	)
 	invariant(
 		firstTool.inputSchema?.properties?.secondNumber,
-		'🚨 Tool must have secondNumber parameter defined'
+		'🚨 Tool must have secondNumber parameter defined',
 	)
 })
 

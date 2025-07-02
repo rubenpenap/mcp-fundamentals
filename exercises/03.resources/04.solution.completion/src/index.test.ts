@@ -89,7 +89,7 @@ test('Resource Template Completions', async () => {
 			content: 'This is for testing completions',
 		},
 	})
-	
+
 	await client.callTool({
 		name: 'create_entry',
 		arguments: {
@@ -97,21 +97,27 @@ test('Resource Template Completions', async () => {
 			content: 'This is another completion test',
 		},
 	})
-	
+
 	// Test that resource templates exist
 	const templates = await client.listResourceTemplates()
-	
+
 	// 🚨 Proactive check: Ensure resource templates are registered
-	invariant(templates.resourceTemplates.length > 0, '🚨 No resource templates found - this exercise requires implementing resource templates')
-	
-	const entriesTemplate = templates.resourceTemplates.find(rt => 
-		rt.uriTemplate.includes('entries') && rt.uriTemplate.includes('{')
+	invariant(
+		templates.resourceTemplates.length > 0,
+		'🚨 No resource templates found - this exercise requires implementing resource templates',
 	)
-	invariant(entriesTemplate, '🚨 No entries resource template found - should implement epicme://entries/{id} template')
-	
+
+	const entriesTemplate = templates.resourceTemplates.find(
+		(rt) => rt.uriTemplate.includes('entries') && rt.uriTemplate.includes('{'),
+	)
+	invariant(
+		entriesTemplate,
+		'🚨 No entries resource template found - should implement epicme://entries/{id} template',
+	)
+
 	// 🚨 The key learning objective for this exercise is adding completion support
 	// This requires BOTH declaring completions capability AND implementing complete callbacks
-	
+
 	// Test if completion capability is properly declared by trying to use completion API
 	let completionSupported = false
 	try {
@@ -140,7 +146,10 @@ test('Resource Template Completions', async () => {
 			completionSupported = true
 		}
 	}
-	
+
 	// 🚨 Proactive check: Completion functionality must be fully implemented
-	invariant(completionSupported, '🚨 Resource template completion requires both declaring completions capability in server AND implementing complete callbacks for template parameters')
+	invariant(
+		completionSupported,
+		'🚨 Resource template completion requires both declaring completions capability in server AND implementing complete callbacks for template parameters',
+	)
 })

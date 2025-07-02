@@ -82,21 +82,30 @@ test('Tool Call', async () => {
 
 test('Resource Templates List', async () => {
 	const list = await client.listResourceTemplates()
-	
+
 	// 🚨 Proactive check: Ensure resource templates are registered
-	invariant(list.resourceTemplates.length > 0, '🚨 No resource templates found - this exercise requires implementing parameterized resources like epicme://entries/{id}')
-	
-	const entriesTemplate = list.resourceTemplates.find(rt => 
-		rt.uriTemplate.includes('entries') && rt.uriTemplate.includes('{')
+	invariant(
+		list.resourceTemplates.length > 0,
+		'🚨 No resource templates found - this exercise requires implementing parameterized resources like epicme://entries/{id}',
 	)
-	const tagsTemplate = list.resourceTemplates.find(rt => 
-		rt.uriTemplate.includes('tags') && rt.uriTemplate.includes('{')
+
+	const entriesTemplate = list.resourceTemplates.find(
+		(rt) => rt.uriTemplate.includes('entries') && rt.uriTemplate.includes('{'),
 	)
-	
+	const tagsTemplate = list.resourceTemplates.find(
+		(rt) => rt.uriTemplate.includes('tags') && rt.uriTemplate.includes('{'),
+	)
+
 	// 🚨 Proactive checks for specific templates
-	invariant(entriesTemplate, '🚨 No entries resource template found - should implement epicme://entries/{id} template')
-	invariant(tagsTemplate, '🚨 No tags resource template found - should implement epicme://tags/{id} template')
-	
+	invariant(
+		entriesTemplate,
+		'🚨 No entries resource template found - should implement epicme://entries/{id} template',
+	)
+	invariant(
+		tagsTemplate,
+		'🚨 No tags resource template found - should implement epicme://tags/{id} template',
+	)
+
 	expect(entriesTemplate).toEqual(
 		expect.objectContaining({
 			name: expect.any(String),
@@ -104,7 +113,7 @@ test('Resource Templates List', async () => {
 			description: expect.stringMatching(/entry|entries/i),
 		}),
 	)
-	
+
 	expect(tagsTemplate).toEqual(
 		expect.objectContaining({
 			name: expect.any(String),
@@ -123,7 +132,7 @@ test('Resource Template Read - Entry', async () => {
 			content: 'This entry is for testing templates',
 		},
 	})
-	
+
 	const result = await client.readResource({
 		uri: 'epicme://entries/1',
 	})
@@ -139,19 +148,25 @@ test('Resource Template Read - Entry', async () => {
 			]),
 		}),
 	)
-	
+
 	// 🚨 Proactive check: Ensure the resource content is valid JSON and contains entry data
 	const content = result.contents[0]
-	invariant(content && 'text' in content, '🚨 Resource content must have text field')
-	invariant(typeof content.text === 'string', '🚨 Resource content text must be a string')
-	
+	invariant(
+		content && 'text' in content,
+		'🚨 Resource content must have text field',
+	)
+	invariant(
+		typeof content.text === 'string',
+		'🚨 Resource content text must be a string',
+	)
+
 	let entryData: any
 	try {
 		entryData = JSON.parse(content.text)
 	} catch (error) {
 		throw new Error('🚨 Resource content must be valid JSON')
 	}
-	
+
 	// 🚨 Proactive check: Ensure entry data contains expected fields
 	invariant(entryData.id, '🚨 Entry resource should contain id field')
 	invariant(entryData.title, '🚨 Entry resource should contain title field')

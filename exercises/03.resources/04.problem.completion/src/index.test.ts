@@ -89,7 +89,7 @@ test('Resource Template Completions', async () => {
 			content: 'This is for testing completions',
 		},
 	})
-	
+
 	await client.callTool({
 		name: 'create_entry',
 		arguments: {
@@ -97,21 +97,27 @@ test('Resource Template Completions', async () => {
 			content: 'This is another completion test',
 		},
 	})
-	
+
 	// Test that resource templates exist
 	const templates = await client.listResourceTemplates()
-	
+
 	// 🚨 Proactive check: Ensure resource templates are registered
-	invariant(templates.resourceTemplates.length > 0, '🚨 No resource templates found - this exercise requires implementing resource templates')
-	
-	const entriesTemplate = templates.resourceTemplates.find(rt => 
-		rt.uriTemplate.includes('entries') && rt.uriTemplate.includes('{')
+	invariant(
+		templates.resourceTemplates.length > 0,
+		'🚨 No resource templates found - this exercise requires implementing resource templates',
 	)
-	invariant(entriesTemplate, '🚨 No entries resource template found - should implement epicme://entries/{id} template')
-	
+
+	const entriesTemplate = templates.resourceTemplates.find(
+		(rt) => rt.uriTemplate.includes('entries') && rt.uriTemplate.includes('{'),
+	)
+	invariant(
+		entriesTemplate,
+		'🚨 No entries resource template found - should implement epicme://entries/{id} template',
+	)
+
 	// 🚨 The key learning objective for this exercise is adding completion support
 	// This requires BOTH declaring completions capability AND implementing complete callbacks
-	
+
 	try {
 		// Test completion functionality using the proper MCP SDK method
 		const completionResult = await (client as any).completeResource({
@@ -121,36 +127,56 @@ test('Resource Template Completions', async () => {
 			},
 			argument: {
 				name: 'id',
-				value: '1',  // Should match at least one of our created entries
+				value: '1', // Should match at least one of our created entries
 			},
 		})
-		
+
 		// 🚨 Proactive check: Completion should return results
-		invariant(Array.isArray(completionResult.completion?.values), '🚨 Completion should return an array of values')
-		invariant(completionResult.completion.values.length > 0, '🚨 Completion should return at least one matching result for id="1"')
-		
+		invariant(
+			Array.isArray(completionResult.completion?.values),
+			'🚨 Completion should return an array of values',
+		)
+		invariant(
+			completionResult.completion.values.length > 0,
+			'🚨 Completion should return at least one matching result for id="1"',
+		)
+
 		// Check that completion values are strings
 		completionResult.completion.values.forEach((value: any) => {
-			invariant(typeof value === 'string', '🚨 Completion values should be strings')
+			invariant(
+				typeof value === 'string',
+				'🚨 Completion values should be strings',
+			)
 		})
-		
 	} catch (error: any) {
 		console.error('🚨 Resource template completion not fully implemented!')
-		console.error('🚨 This exercise teaches you how to add completion support to resource templates')
+		console.error(
+			'🚨 This exercise teaches you how to add completion support to resource templates',
+		)
 		console.error('🚨 You need to:')
 		console.error('🚨   1. Add "completion" to your server capabilities')
 		console.error('🚨   2. Add complete callback to your ResourceTemplate:')
-		console.error('🚨      complete: { async id(value) { return ["1", "2", "3"] } }')
-		console.error('🚨   3. The complete callback should filter entries matching the partial value')
+		console.error(
+			'🚨      complete: { async id(value) { return ["1", "2", "3"] } }',
+		)
+		console.error(
+			'🚨   3. The complete callback should filter entries matching the partial value',
+		)
 		console.error('🚨   4. Return an array of valid completion strings')
 		console.error(`🚨 Error details: ${error?.message || error}`)
-		
+
 		if (error?.code === -32601) {
-			throw new Error('🚨 Completion capability not declared - add "completion" to server capabilities and implement complete callbacks')
+			throw new Error(
+				'🚨 Completion capability not declared - add "completion" to server capabilities and implement complete callbacks',
+			)
 		} else if (error?.code === -32602) {
-			throw new Error('🚨 Complete callback not implemented - add complete: { async id(value) { ... } } to your ResourceTemplate')
+			throw new Error(
+				'🚨 Complete callback not implemented - add complete: { async id(value) { ... } } to your ResourceTemplate',
+			)
 		} else {
-			throw new Error(`🚨 Resource template completion not working - check capability declaration and complete callback implementation. ${error}`)
+			throw new Error(
+				`🚨 Resource template completion not working - check capability declaration and complete callback implementation. ${error}`,
+			)
 		}
 	}
 })

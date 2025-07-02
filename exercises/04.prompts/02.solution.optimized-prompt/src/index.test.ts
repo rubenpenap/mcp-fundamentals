@@ -82,12 +82,20 @@ test('Tool Call', async () => {
 
 test('Prompts List', async () => {
 	const list = await client.listPrompts()
-	
+
 	// 🚨 Proactive check: Ensure prompts are registered
-	invariant(list.prompts.length > 0, '🚨 No prompts found - make sure to register prompts with the prompts capability')
-	
-	const tagSuggestionsPrompt = list.prompts.find(p => p.name.includes('tag') || p.name.includes('suggest'))
-	invariant(tagSuggestionsPrompt, '🚨 No tag suggestions prompt found - should include a prompt for suggesting tags')
+	invariant(
+		list.prompts.length > 0,
+		'🚨 No prompts found - make sure to register prompts with the prompts capability',
+	)
+
+	const tagSuggestionsPrompt = list.prompts.find(
+		(p) => p.name.includes('tag') || p.name.includes('suggest'),
+	)
+	invariant(
+		tagSuggestionsPrompt,
+		'🚨 No tag suggestions prompt found - should include a prompt for suggesting tags',
+	)
 })
 
 test('Optimized Prompt with Embedded Resources', async () => {
@@ -99,7 +107,7 @@ test('Optimized Prompt with Embedded Resources', async () => {
 			content: 'This entry is for testing optimized prompts',
 		},
 	})
-	
+
 	await client.callTool({
 		name: 'create_tag',
 		arguments: {
@@ -107,11 +115,11 @@ test('Optimized Prompt with Embedded Resources', async () => {
 			description: 'Tag for optimization testing',
 		},
 	})
-	
+
 	const list = await client.listPrompts()
 	const firstPrompt = list.prompts[0]
 	invariant(firstPrompt, '🚨 No prompts available to test')
-	
+
 	const result = await client.getPrompt({
 		name: firstPrompt.name,
 		arguments: {
@@ -131,28 +139,40 @@ test('Optimized Prompt with Embedded Resources', async () => {
 			]),
 		}),
 	)
-	
+
 	// 🚨 Proactive check: Ensure prompt has multiple messages (optimization means embedding data)
-	invariant(result.messages.length > 1, '🚨 Optimized prompt should have multiple messages - instructions plus embedded data')
-	
-	// 🚨 Proactive check: Ensure at least one message is a resource (embedded data)
-	const resourceMessages = result.messages.filter(m => m.content.type === 'resource')
-	invariant(resourceMessages.length > 0, '🚨 Optimized prompt should embed resource data directly instead of instructing LLM to run tools')
-	
-	// 🚨 Proactive check: Ensure prompt doesn't tell LLM to run data retrieval tools (that's what we're optimizing away)
-	const textMessages = result.messages.filter(m => m.content.type === 'text')
-	const hasDataRetrievalInstructions = textMessages.some(m => 
-		typeof m.content.text === 'string' && 
-		(m.content.text.toLowerCase().includes('get_entry') || 
-		 m.content.text.toLowerCase().includes('list_tags') ||
-		 m.content.text.toLowerCase().includes('look up'))
+	invariant(
+		result.messages.length > 1,
+		'🚨 Optimized prompt should have multiple messages - instructions plus embedded data',
 	)
-	invariant(!hasDataRetrievalInstructions, '🚨 Optimized prompt should NOT instruct LLM to run data retrieval tools like get_entry or list_tags - data should be embedded directly')
-	
+
+	// 🚨 Proactive check: Ensure at least one message is a resource (embedded data)
+	const resourceMessages = result.messages.filter(
+		(m) => m.content.type === 'resource',
+	)
+	invariant(
+		resourceMessages.length > 0,
+		'🚨 Optimized prompt should embed resource data directly instead of instructing LLM to run tools',
+	)
+
+	// 🚨 Proactive check: Ensure prompt doesn't tell LLM to run data retrieval tools (that's what we're optimizing away)
+	const textMessages = result.messages.filter((m) => m.content.type === 'text')
+	const hasDataRetrievalInstructions = textMessages.some(
+		(m) =>
+			typeof m.content.text === 'string' &&
+			(m.content.text.toLowerCase().includes('get_entry') ||
+				m.content.text.toLowerCase().includes('list_tags') ||
+				m.content.text.toLowerCase().includes('look up')),
+	)
+	invariant(
+		!hasDataRetrievalInstructions,
+		'🚨 Optimized prompt should NOT instruct LLM to run data retrieval tools like get_entry or list_tags - data should be embedded directly',
+	)
+
 	// Note: The prompt can still instruct the LLM to use action tools like create_tag or add_tag_to_entry
-	
+
 	// Validate structure of resource messages
-	resourceMessages.forEach(resMsg => {
+	resourceMessages.forEach((resMsg) => {
 		expect(resMsg.content).toEqual(
 			expect.objectContaining({
 				type: 'resource',
@@ -163,12 +183,25 @@ test('Optimized Prompt with Embedded Resources', async () => {
 				}),
 			}),
 		)
-		
+
 		// 🚨 Proactive check: Ensure embedded resource contains valid JSON
-		invariant('resource' in resMsg.content, '🚨 Resource message must have resource field')
-		invariant(typeof resMsg.content.resource === 'object' && resMsg.content.resource !== null, '🚨 Resource must be an object')
-		invariant('text' in resMsg.content.resource, '🚨 Resource must have text field')
-		invariant(typeof resMsg.content.resource.text === 'string', '🚨 Resource text must be a string')
+		invariant(
+			'resource' in resMsg.content,
+			'🚨 Resource message must have resource field',
+		)
+		invariant(
+			typeof resMsg.content.resource === 'object' &&
+				resMsg.content.resource !== null,
+			'🚨 Resource must be an object',
+		)
+		invariant(
+			'text' in resMsg.content.resource,
+			'🚨 Resource must have text field',
+		)
+		invariant(
+			typeof resMsg.content.resource.text === 'string',
+			'🚨 Resource text must be a string',
+		)
 		try {
 			JSON.parse(resMsg.content.resource.text)
 		} catch (error) {

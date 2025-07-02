@@ -39,10 +39,19 @@ test('Tool Definition', async () => {
 	} catch (error: any) {
 		if (error.code === -32601) {
 			console.error('🚨 Tools capability not implemented!')
-			console.error('🚨 This exercise requires registering tools with the MCP server')
-			console.error('🚨 You need to: 1) Add tools: {} to server capabilities, 2) Register an "add" tool in initializeTools()')
-			console.error('🚨 Check src/tools.ts and make sure you implement the "add" tool')
-			const enhancedError = new Error('🚨 Tools capability required. Register an "add" tool that hardcodes 1 + 2 = 3. ' + (error.message || error))
+			console.error(
+				'🚨 This exercise requires registering tools with the MCP server',
+			)
+			console.error(
+				'🚨 You need to: 1) Add tools: {} to server capabilities, 2) Register an "add" tool in initializeTools()',
+			)
+			console.error(
+				'🚨 Check src/tools.ts and make sure you implement the "add" tool',
+			)
+			const enhancedError = new Error(
+				'🚨 Tools capability required. Register an "add" tool that hardcodes 1 + 2 = 3. ' +
+					(error.message || error),
+			)
 			enhancedError.stack = error.stack
 			throw enhancedError
 		}
@@ -70,10 +79,18 @@ test('Tool Call', async () => {
 	} catch (error: any) {
 		if (error.code === -32601) {
 			console.error('🚨 Tool call failed - tools capability not implemented!')
-			console.error('🚨 This means you haven\'t registered the "add" tool properly')
-			console.error('🚨 In src/tools.ts, use agent.server.registerTool() to create a simple "add" tool')
-			console.error('🚨 The tool should return "1 + 2 = 3" (hardcoded for this simple exercise)')
-			const enhancedError = new Error('🚨 "add" tool registration required. ' + (error.message || error))
+			console.error(
+				'🚨 This means you haven\'t registered the "add" tool properly',
+			)
+			console.error(
+				'🚨 In src/tools.ts, use agent.server.registerTool() to create a simple "add" tool',
+			)
+			console.error(
+				'🚨 The tool should return "1 + 2 = 3" (hardcoded for this simple exercise)',
+			)
+			const enhancedError = new Error(
+				'🚨 "add" tool registration required. ' + (error.message || error),
+			)
 			enhancedError.stack = error.stack
 			throw enhancedError
 		}

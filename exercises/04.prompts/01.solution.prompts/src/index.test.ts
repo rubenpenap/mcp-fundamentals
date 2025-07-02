@@ -82,13 +82,21 @@ test('Tool Call', async () => {
 
 test('Prompts List', async () => {
 	const list = await client.listPrompts()
-	
+
 	// 🚨 Proactive check: Ensure prompts are registered
-	invariant(list.prompts.length > 0, '🚨 No prompts found - make sure to register prompts with the prompts capability')
-	
-	const tagSuggestionsPrompt = list.prompts.find(p => p.name.includes('tag') || p.name.includes('suggest'))
-	invariant(tagSuggestionsPrompt, '🚨 No tag suggestions prompt found - should include a prompt for suggesting tags')
-	
+	invariant(
+		list.prompts.length > 0,
+		'🚨 No prompts found - make sure to register prompts with the prompts capability',
+	)
+
+	const tagSuggestionsPrompt = list.prompts.find(
+		(p) => p.name.includes('tag') || p.name.includes('suggest'),
+	)
+	invariant(
+		tagSuggestionsPrompt,
+		'🚨 No tag suggestions prompt found - should include a prompt for suggesting tags',
+	)
+
 	expect(tagSuggestionsPrompt).toEqual(
 		expect.objectContaining({
 			name: expect.any(String),
@@ -108,7 +116,7 @@ test('Prompt Get', async () => {
 	const list = await client.listPrompts()
 	const firstPrompt = list.prompts[0]
 	invariant(firstPrompt, '🚨 No prompts available to test')
-	
+
 	const result = await client.getPrompt({
 		name: firstPrompt.name,
 		arguments: {
@@ -129,11 +137,20 @@ test('Prompt Get', async () => {
 			]),
 		}),
 	)
-	
+
 	// 🚨 Proactive check: Ensure prompt contains meaningful content
-	invariant(result.messages.length > 0, '🚨 Prompt should contain at least one message')
+	invariant(
+		result.messages.length > 0,
+		'🚨 Prompt should contain at least one message',
+	)
 	const firstMessage = result.messages[0]
 	invariant(firstMessage, '🚨 First message should exist')
-	invariant(typeof firstMessage.content.text === 'string', '🚨 Message content text should be a string')
-	invariant(firstMessage.content.text.length > 10, '🚨 Prompt message should be more than just a placeholder')
+	invariant(
+		typeof firstMessage.content.text === 'string',
+		'🚨 Message content text should be a string',
+	)
+	invariant(
+		firstMessage.content.text.length > 10,
+		'🚨 Prompt message should be more than just a placeholder',
+	)
 })

@@ -111,17 +111,21 @@ test('Sampling', async () => {
 			name: 'create_entry',
 			arguments: entry,
 		})
-		
+
 		// Add a timeout wrapper to detect if sampling isn't working
 		const timeoutPromise = new Promise<never>((_, reject) => {
 			setTimeout(() => {
-				reject(new Error('🚨 Sampling timeout - server did not send a sampling request'))
+				reject(
+					new Error(
+						'🚨 Sampling timeout - server did not send a sampling request',
+					),
+				)
 			}, 3000) // Shorter timeout for better UX
 		})
-		
+
 		const request = await Promise.race([
 			messageRequestDeferred.promise,
-			timeoutPromise
+			timeoutPromise,
 		])
 
 		expect(request).toEqual(
@@ -157,13 +161,27 @@ test('Sampling', async () => {
 		// give the server a chance to process the result
 		await new Promise((resolve) => setTimeout(resolve, 100))
 	} catch (error: any) {
-		if (error.message?.includes('Sampling timeout') || error.message?.includes('Test timed out')) {
+		if (
+			error.message?.includes('Sampling timeout') ||
+			error.message?.includes('Test timed out')
+		) {
 			console.error('🚨 Sampling capability not implemented!')
-			console.error('🚨 This exercise requires implementing sampling requests to interact with LLMs')
-			console.error('🚨 You need to: 1) Connect the client to your server, 2) Use client.createMessage() after tool calls')
-			console.error('🚨 The create_entry tool should trigger a sampling request to celebrate the user\'s accomplishment')
-			console.error('🚨 Check that your tool implementation includes a client.createMessage() call')
-			const enhancedError = new Error('🚨 Sampling capability required. Tool should send LLM requests after creating entries. ' + (error.message || error))
+			console.error(
+				'🚨 This exercise requires implementing sampling requests to interact with LLMs',
+			)
+			console.error(
+				'🚨 You need to: 1) Connect the client to your server, 2) Use client.createMessage() after tool calls',
+			)
+			console.error(
+				"🚨 The create_entry tool should trigger a sampling request to celebrate the user's accomplishment",
+			)
+			console.error(
+				'🚨 Check that your tool implementation includes a client.createMessage() call',
+			)
+			const enhancedError = new Error(
+				'🚨 Sampling capability required. Tool should send LLM requests after creating entries. ' +
+					(error.message || error),
+			)
 			enhancedError.stack = error.stack
 			throw enhancedError
 		}

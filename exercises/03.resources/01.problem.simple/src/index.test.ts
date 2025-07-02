@@ -83,11 +83,14 @@ test('Tool Call', async () => {
 test('Resource List', async () => {
 	try {
 		const list = await client.listResources()
-		const tagsResource = list.resources.find(r => r.name === 'tags')
-		
+		const tagsResource = list.resources.find((r) => r.name === 'tags')
+
 		// 🚨 Proactive check: Ensure the tags resource is registered
-		invariant(tagsResource, '🚨 No "tags" resource found - make sure to register the tags resource')
-		
+		invariant(
+			tagsResource,
+			'🚨 No "tags" resource found - make sure to register the tags resource',
+		)
+
 		expect(tagsResource).toEqual(
 			expect.objectContaining({
 				name: 'tags',
@@ -98,10 +101,19 @@ test('Resource List', async () => {
 	} catch (error: any) {
 		if (error.code === -32601) {
 			console.error('🚨 Resources capability not implemented!')
-			console.error('🚨 This exercise requires implementing resources with the MCP server')
-			console.error('🚨 You need to: 1) Add resources: {} to server capabilities, 2) Register a "tags" resource in initializeResources()')
-			console.error('🚨 Check src/resources.ts and implement a static resource for "epicme://tags"')
-			const enhancedError = new Error('🚨 Resources capability required. Register a "tags" resource that returns all tags from the database. ' + (error.message || error))
+			console.error(
+				'🚨 This exercise requires implementing resources with the MCP server',
+			)
+			console.error(
+				'🚨 You need to: 1) Add resources: {} to server capabilities, 2) Register a "tags" resource in initializeResources()',
+			)
+			console.error(
+				'🚨 Check src/resources.ts and implement a static resource for "epicme://tags"',
+			)
+			const enhancedError = new Error(
+				'🚨 Resources capability required. Register a "tags" resource that returns all tags from the database. ' +
+					(error.message || error),
+			)
 			enhancedError.stack = error.stack
 			throw enhancedError
 		}
@@ -126,28 +138,47 @@ test('Tags Resource Read', async () => {
 				]),
 			}),
 		)
-		
+
 		// 🚨 Proactive check: Ensure the resource content is valid JSON
 		const content = result.contents[0]
-		invariant(content && 'text' in content, '🚨 Resource content must have text field')
-		invariant(typeof content.text === 'string', '🚨 Resource content text must be a string')
-		
+		invariant(
+			content && 'text' in content,
+			'🚨 Resource content must have text field',
+		)
+		invariant(
+			typeof content.text === 'string',
+			'🚨 Resource content text must be a string',
+		)
+
 		let tags: unknown
 		try {
 			tags = JSON.parse(content.text)
 		} catch (error) {
 			throw new Error('🚨 Resource content must be valid JSON')
 		}
-		
+
 		// 🚨 Proactive check: Ensure tags is an array
-		invariant(Array.isArray(tags), '🚨 Tags resource should return an array of tags')
+		invariant(
+			Array.isArray(tags),
+			'🚨 Tags resource should return an array of tags',
+		)
 	} catch (error: any) {
 		if (error.code === -32601) {
-			console.error('🚨 Resource read failed - resources capability not implemented!')
-			console.error('🚨 This means you haven\'t registered the "tags" resource properly')
-			console.error('🚨 In src/resources.ts, use agent.server.registerResource() to create a "tags" resource')
-			console.error('🚨 The resource should return JSON array of all tags from agent.db.getTags()')
-			const enhancedError = new Error('🚨 "tags" resource registration required. ' + (error.message || error))
+			console.error(
+				'🚨 Resource read failed - resources capability not implemented!',
+			)
+			console.error(
+				'🚨 This means you haven\'t registered the "tags" resource properly',
+			)
+			console.error(
+				'🚨 In src/resources.ts, use agent.server.registerResource() to create a "tags" resource',
+			)
+			console.error(
+				'🚨 The resource should return JSON array of all tags from agent.db.getTags()',
+			)
+			const enhancedError = new Error(
+				'🚨 "tags" resource registration required. ' + (error.message || error),
+			)
 			enhancedError.stack = error.stack
 			throw enhancedError
 		}

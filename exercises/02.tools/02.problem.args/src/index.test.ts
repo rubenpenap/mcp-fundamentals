@@ -49,24 +49,33 @@ test('Tool Definition', async () => {
 		)
 	} catch (error: any) {
 		console.error('🚨 Tool schema mismatch!')
-		console.error('🚨 This exercise requires updating the "add" tool to accept dynamic arguments')
+		console.error(
+			'🚨 This exercise requires updating the "add" tool to accept dynamic arguments',
+		)
 		console.error('🚨 Current tool schema:', JSON.stringify(firstTool, null, 2))
-		console.error('🚨 You need to: 1) Add proper inputSchema with firstNumber and secondNumber parameters')
+		console.error(
+			'🚨 You need to: 1) Add proper inputSchema with firstNumber and secondNumber parameters',
+		)
 		console.error('🚨 2) Update the tool description to "add two numbers"')
-		console.error('🚨 3) Make the tool calculate firstNumber + secondNumber instead of hardcoding 1 + 2')
-		const enhancedError = new Error('🚨 Tool schema update required. Add firstNumber and secondNumber parameters to the "add" tool. ' + (error.message || error))
+		console.error(
+			'🚨 3) Make the tool calculate firstNumber + secondNumber instead of hardcoding 1 + 2',
+		)
+		const enhancedError = new Error(
+			'🚨 Tool schema update required. Add firstNumber and secondNumber parameters to the "add" tool. ' +
+				(error.message || error),
+		)
 		enhancedError.stack = error.stack
 		throw enhancedError
 	}
-	
+
 	// 🚨 Proactive check: Ensure the tool schema includes both required arguments
 	invariant(
 		firstTool.inputSchema?.properties?.firstNumber,
-		'🚨 Tool must have firstNumber parameter defined'
+		'🚨 Tool must have firstNumber parameter defined',
 	)
 	invariant(
 		firstTool.inputSchema?.properties?.secondNumber,
-		'🚨 Tool must have secondNumber parameter defined'
+		'🚨 Tool must have secondNumber parameter defined',
 	)
 })
 
@@ -114,10 +123,17 @@ test('Tool Call with Different Numbers', async () => {
 	} catch (error: any) {
 		console.error('🚨 Tool call with different numbers failed!')
 		console.error('🚨 This suggests the tool implementation is still hardcoded')
-		console.error('🚨 The tool should calculate firstNumber + secondNumber = 5 + 7 = 12')
+		console.error(
+			'🚨 The tool should calculate firstNumber + secondNumber = 5 + 7 = 12',
+		)
 		console.error('🚨 But it\'s probably still returning hardcoded "1 + 2 = 3"')
-		console.error('🚨 Update the tool implementation to use the dynamic arguments from the input schema')
-		const enhancedError = new Error('🚨 Dynamic tool calculation required. Tool should calculate arguments, not return hardcoded values. ' + (error.message || error))
+		console.error(
+			'🚨 Update the tool implementation to use the dynamic arguments from the input schema',
+		)
+		const enhancedError = new Error(
+			'🚨 Dynamic tool calculation required. Tool should calculate arguments, not return hardcoded values. ' +
+				(error.message || error),
+		)
 		enhancedError.stack = error.stack
 		throw enhancedError
 	}
