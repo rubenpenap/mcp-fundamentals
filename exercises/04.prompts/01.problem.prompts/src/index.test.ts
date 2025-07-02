@@ -118,24 +118,24 @@ test('Prompts List', async () => {
 		) {
 			console.error('🚨 Prompts capability not implemented!')
 			console.error(
-				'🚨 This exercise teaches you how to add prompts to your MCP server',
+				"🚨 This exercise requires you to add support for MCP's prompt capability to your server.",
 			)
 			console.error('🚨 You need to:')
-			console.error('🚨   1. Add "prompts" to your server capabilities')
+			console.error('🚨   1. Add "prompts" to your server capabilities.')
 			console.error(
-				'🚨   2. Create an initializePrompts function in a prompts.ts file',
+				'🚨   2. Create an initializePrompts function in prompts.ts.',
 			)
 			console.error(
-				'🚨   3. Use server.registerPrompt() to register prompts',
+				'🚨   3. Use server.registerPrompt() to register prompts (e.g., for suggesting tags).',
 			)
 			console.error(
-				'🚨   4. Call initializePrompts() in your main init() method',
+				'🚨   4. Call initializePrompts() in your main init() method.',
 			)
 			console.error(
-				'🚨   5. Register prompts that can help users analyze their journal entries',
+				'🚨   5. Implement prompt handlers that return meaningful, parameterized prompt messages.',
 			)
 			console.error(
-				'🚨 In src/index.ts, add prompts capability and request handlers',
+				'🚨 In src/index.ts, add prompts capability and request handlers.',
 			)
 			throw new Error(
 				`🚨 Prompts capability not declared - add "prompts" to server capabilities and implement prompt handlers. ${error}`,
@@ -194,22 +194,24 @@ test('Prompt Get', async () => {
 		) {
 			console.error('🚨 Prompts capability not implemented!')
 			console.error(
-				'🚨 This exercise teaches you how to create and serve prompts via MCP',
+				'🚨 This exercise requires you to create and serve prompts via MCP.',
 			)
 			console.error('🚨 You need to:')
-			console.error('🚨   1. Add "prompts" to your server capabilities')
-			console.error('🚨   2. Handle GetPromptRequestSchema requests')
+			console.error('🚨   1. Add "prompts" to your server capabilities.')
 			console.error(
-				'🚨   3. Create prompt templates that help analyze journal entries',
+				'🚨   2. Handle prompt requests by returning prompt messages.',
 			)
 			console.error(
-				'🚨   4. Return prompt messages with proper role and content',
+				'🚨   3. Create prompt templates that help analyze journal entries.',
 			)
 			console.error(
-				'🚨 In src/index.ts, implement GetPromptRequestSchema handler to return formatted prompts',
+				'🚨   4. Return prompt messages with proper role and content.',
+			)
+			console.error(
+				'🚨 In src/index.ts, implement a prompt handler to return formatted prompts.',
 			)
 			throw new Error(
-				`🚨 Prompt get functionality not implemented - add prompts capability and GetPromptRequestSchema handler. ${error}`,
+				`🚨 Prompt get functionality not implemented - add prompts capability and a prompt handler. ${error}`,
 			)
 		}
 		throw error

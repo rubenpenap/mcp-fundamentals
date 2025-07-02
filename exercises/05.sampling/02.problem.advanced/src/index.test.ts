@@ -205,29 +205,29 @@ test('Sampling', async () => {
 	} catch (error) {
 		console.error('🚨 Advanced sampling features not properly implemented!')
 		console.error(
-			'🚨 This exercise teaches you advanced sampling with structured data and proper configuration',
+			'🚨 This exercise requires you to send a structured sampling request to the LLM with the new entry, its current tags, and all existing tags, as JSON (application/json).',
 		)
 		console.error('🚨 You need to:')
 		console.error(
-			'🚨   1. Increase maxTokens to a reasonable value (e.g., 150) for longer responses',
+			'🚨   1. Increase maxTokens to a reasonable value (e.g., 100+) for longer responses.',
 		)
 		console.error(
-			'🚨   2. Create a meaningful systemPrompt with examples of expected output format',
+			'🚨   2. Create a meaningful systemPrompt that includes examples of the expected output format (array of tag objects, with examples for existing and new tags).',
 		)
 		console.error(
-			'🚨   3. Structure the user message as JSON with mimeType: "application/json"',
+			'🚨   3. Structure the user message as JSON with mimeType: "application/json".',
 		)
 		console.error(
-			'🚨   4. Include both entry data AND existingTags context in the JSON',
+			'🚨   4. Include both entry data AND existingTags context in the JSON (e.g., { entry: {...}, existingTags: [...] }).',
 		)
 		console.error(
-			'🚨   5. Use structured data format: { entry: {...}, existingTags: [...] }',
+			'🚨   5. Test your prompt in an LLM playground and refine as needed.',
 		)
 		console.error(
-			'🚨 EXAMPLE: systemPrompt should include examples of expected tag suggestions',
+			'🚨 EXAMPLE: systemPrompt should include examples of expected tag suggestions.',
 		)
 		console.error(
-			'🚨 EXAMPLE: user message should be structured JSON, not plain text',
+			'🚨 EXAMPLE: user message should be structured JSON, not plain text.',
 		)
 
 		const params = request.params

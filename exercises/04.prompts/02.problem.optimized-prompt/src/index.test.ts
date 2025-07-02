@@ -214,24 +214,20 @@ test('Optimized Prompt with Embedded Resources', async () => {
 	} catch (error) {
 		console.error('🚨 Prompt optimization not properly implemented!')
 		console.error(
-			'🚨 This exercise teaches you how to optimize prompts by embedding resources',
-		)
-		console.error(
-			'🚨 OPTIMIZATION CONCEPT: Instead of telling the LLM to call get_entry/list_tags,',
-		)
-		console.error(
-			'🚨 embed the data directly in the prompt as resource content',
+			'🚨 This exercise requires you to optimize prompts by embedding resource data directly in the prompt messages, instead of instructing the LLM to call get_entry or list_tags.',
 		)
 		console.error('🚨 You need to:')
 		console.error(
-			'🚨   1. Fetch the entry and tag data in your GetPromptRequestSchema handler',
+			'🚨   1. Fetch the entry and tag data in your prompt handler.',
 		)
 		console.error(
-			'🚨   2. Create multiple messages: text instructions + resource content',
+			'🚨   2. Create multiple messages: one with instructions, others with embedded resource content (type: "resource", mimeType: "application/json").',
 		)
-		console.error('🚨   3. Use content.type = "resource" with embedded data')
 		console.error(
-			'🚨   4. DO NOT tell LLM to call get_entry - provide the data directly',
+			'🚨   3. DO NOT tell the LLM to call get_entry or list_tags - provide the data directly.',
+		)
+		console.error(
+			'🚨   4. Ensure at least one message is a resource, and that the resource contains valid JSON.',
 		)
 		console.error('🚨 This reduces LLM tool calls and improves performance!')
 		throw new Error(

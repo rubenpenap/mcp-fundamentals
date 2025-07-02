@@ -167,16 +167,23 @@ test('Sampling', async () => {
 		) {
 			console.error('🚨 Sampling capability not implemented!')
 			console.error(
-				'🚨 This exercise requires implementing sampling requests to interact with LLMs',
+				'🚨 This exercise requires you to trigger a sampling (completion) request to the LLM when a new journal entry is created.',
+			)
+			console.error('🚨 You need to:')
+			console.error(
+				'🚨   1. Implement a function that sends a sampling request using agent.server.server.createMessage after creating a journal entry.',
 			)
 			console.error(
-				'🚨 You need to: 1) Connect the client to your server, 2) Use client.createMessage() after tool calls',
+				'🚨   2. Use a simple system prompt (e.g., "You are a helpful assistant.") and a user message referencing the new entry\'s ID.',
 			)
 			console.error(
-				"🚨 The create_entry tool should trigger a sampling request to celebrate the user's accomplishment",
+				'🚨   3. Set a reasonable maxTokens value for the response.',
 			)
 			console.error(
-				'🚨 Check that your tool implementation includes a client.createMessage() call',
+				"🚨   4. Log the result to the console so you can inspect the model's output.",
+			)
+			console.error(
+				'🚨 Check that your tool implementation includes a call to agent.server.server.createMessage after creating an entry.',
 			)
 			const enhancedError = new Error(
 				'🚨 Sampling capability required. Tool should send LLM requests after creating entries. ' +
