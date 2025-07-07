@@ -28,7 +28,7 @@ const inspectorProcess = execa('mcp-inspector', [], {
 		...process.env,
 		SERVER_PORT: serverPort,
 		CLIENT_PORT: clientPort,
-		MCP_PROXY_AUTH_TOKEN: sessionToken,
+		MCP_PROXY_TOKEN: sessionToken,
 		ALLOWED_ORIGINS: [
 			`http://localhost:${clientPort}`,
 			`http://127.0.0.1:${clientPort}`,
