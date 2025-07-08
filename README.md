@@ -46,6 +46,7 @@ speed on some of the tools and concepts we'll be covering:
 - [MCP Introduction](https://modelcontextprotocol.io/introduction)
 - [Your AI Assistant Instructor: The EpicShop MCP Server](https://www.epicai.pro/your-ai-assistant-instructor-the-epicshop-mcp-server-0eazr)
 - [How to Debug Your MCP Server](https://www.epicai.pro/how-to-debug-your-mcp-server-38qyl)
+- [MCP Tool Design: From APIs to AI-First Interfaces](https://useai.substack.com/p/mcp-tool-design-from-apis-to-ai-first)
 
 ## System Requirements
 
