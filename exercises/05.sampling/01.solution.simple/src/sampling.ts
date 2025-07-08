@@ -1,6 +1,12 @@
 import { type EpicMeMCP } from './index.ts'
 
 export async function suggestTagsSampling(agent: EpicMeMCP, entryId: number) {
+	const clientCapabilities = agent.server.server.getClientCapabilities()
+	if (!clientCapabilities?.sampling) {
+		console.error('Client does not support sampling, skipping sampling request')
+		return
+	}
+
 	const result = await agent.server.server.createMessage({
 		systemPrompt: `
 You are a helpful assistant.

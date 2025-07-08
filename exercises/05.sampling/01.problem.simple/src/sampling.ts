@@ -1,6 +1,10 @@
 import { type EpicMeMCP } from './index.ts'
 
 export async function suggestTagsSampling(agent: EpicMeMCP, entryId: number) {
+	// 🐨 exit early if the client doesn't support sampling
+	//   💰 get the client capabilities with `agent.server.server.getClientCapabilities()`
+	//   💰 if `!clientCapabilities?.sampling`, exit early
+	//
 	// 🐨 create a message with the server's server
 	// 💰 agent.server.server.createMessage
 	// 🐨 Make the system prompt something simple to start like "you're a helpful assistant"

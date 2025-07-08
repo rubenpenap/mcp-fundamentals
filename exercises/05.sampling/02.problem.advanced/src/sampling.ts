@@ -3,6 +3,12 @@ import { z } from 'zod'
 import { type EpicMeMCP } from './index.ts'
 
 export async function suggestTagsSampling(agent: EpicMeMCP, entryId: number) {
+	const clientCapabilities = agent.server.server.getClientCapabilities()
+	if (!clientCapabilities?.sampling) {
+		console.error('Client does not support sampling, skipping sampling request')
+		return
+	}
+
 	const entry = await agent.db.getEntry(entryId)
 	invariant(entry, `Entry with ID "${entryId}" not found`)
 
