@@ -26,11 +26,11 @@ async function setupClient({ capabilities }: ClientOptions = {}) {
 	const transport = new StdioClientTransport({
 		command: 'tsx',
 		args: ['src/index.ts'],
+		stderr: 'ignore',
 		env: {
 			...process.env,
 			EPIC_ME_DB_PATH,
 		},
-		stderr: 'ignore',
 	})
 	await client.connect(transport)
 	return {
@@ -38,7 +38,7 @@ async function setupClient({ capabilities }: ClientOptions = {}) {
 		EPIC_ME_DB_PATH,
 		async [Symbol.asyncDispose]() {
 			await client.transport?.close()
-			await fs.unlink(EPIC_ME_DB_PATH)
+			await fs.unlink(EPIC_ME_DB_PATH).catch(() => {})
 		},
 	}
 }

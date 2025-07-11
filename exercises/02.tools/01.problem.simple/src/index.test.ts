@@ -6,14 +6,18 @@ import {
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { test, expect } from 'vitest'
 
-async function setupClient() {
-	const client = new Client({
-		name: 'EpicMeTester',
-		version: '1.0.0',
-	})
+async function setupClient({ capabilities }: ClientOptions = {}) {
+	const client = new Client(
+		{
+			name: 'EpicMeTester',
+			version: '1.0.0',
+		},
+		{ capabilities },
+	)
 	const transport = new StdioClientTransport({
 		command: 'tsx',
 		args: ['src/index.ts'],
+		stderr: 'ignore',
 	})
 	await client.connect(transport)
 	return {

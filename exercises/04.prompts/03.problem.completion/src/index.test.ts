@@ -162,7 +162,7 @@ test('Prompts List', async () => {
 })
 
 test('Prompt Argument Completion', async () => {
-	await using setup = await setupClient()
+	await using setup = await setupClient({ capabilities: { completion: true } })
 	const { client } = setup
 	// First create some entries to have data for completion
 	await client.callTool({
@@ -200,9 +200,9 @@ test('Prompt Argument Completion', async () => {
 		invariant(firstArg, '🚨 First prompt argument should exist')
 
 		// Test completion functionality using the proper MCP SDK method
-		const completionResult = await (client as any).completePrompt({
+		const completionResult = await client.complete({
 			ref: {
-				type: 'prompt',
+				type: 'ref/prompt',
 				name: firstPrompt.name,
 			},
 			argument: {
