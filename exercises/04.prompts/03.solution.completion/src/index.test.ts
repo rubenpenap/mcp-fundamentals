@@ -1,7 +1,10 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { invariant } from '@epic-web/invariant'
-import { Client } from '@modelcontextprotocol/sdk/client/index.js'
+import {
+	Client,
+	type ClientOptions,
+} from '@modelcontextprotocol/sdk/client/index.js'
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { test, expect } from 'vitest'
 
@@ -9,7 +12,7 @@ function getTestDbPath() {
 	return `./test.ignored/db.${process.env.VITEST_WORKER_ID}.${Math.random().toString(36).slice(2)}.sqlite`
 }
 
-async function setupClient({ capabilities = {} } = {}) {
+async function setupClient({ capabilities }: ClientOptions = {}) {
 	const EPIC_ME_DB_PATH = getTestDbPath()
 	const dir = path.dirname(EPIC_ME_DB_PATH)
 	await fs.mkdir(dir, { recursive: true })
@@ -159,7 +162,7 @@ test('Prompts List', async () => {
 })
 
 test('Prompt Argument Completion', async () => {
-	await using setup = await setupClient()
+	await using setup = await setupClient({ capabilities: { completion: true } })
 	const { client } = setup
 	// First create some entries to have data for completion
 	await client.callTool({
@@ -197,9 +200,9 @@ test('Prompt Argument Completion', async () => {
 		invariant(firstArg, '🚨 First prompt argument should exist')
 
 		// Test completion functionality using the proper MCP SDK method
-		const completionResult = await (client as any).completePrompt({
+		const completionResult = await client.complete({
 			ref: {
-				type: 'prompt',
+				type: 'ref/prompt',
 				name: firstPrompt.name,
 			},
 			argument: {
