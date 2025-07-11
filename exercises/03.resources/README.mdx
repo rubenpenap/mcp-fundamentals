@@ -45,7 +45,6 @@ sequenceDiagram
 	App-->>User: Display resource data
 	User->>App: Send a prompt
 	App->>LLM: Forward prompt with resource
-	Note over App,Server: Tool responses can embed resource references for richer context
 ```
 
 <callout-warning>
@@ -121,9 +120,6 @@ of resources:
 - **Tags**: A simple resource returning all available tags.
 - **Resource Templates**: Journal entries and tags, each accessible via a
   unique URI and discoverable through resource templates.
-- **Embedded resources**: Making it possible for tools to return references to
-  resources as part of their output, enabling richer, more contextual
-  interactions.
 
 By the end, you'll have hands-on experience with MCP's resource capabilities,
 including resource registration, templates, and embedding resources in tool

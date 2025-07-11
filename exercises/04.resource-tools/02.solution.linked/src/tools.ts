@@ -34,7 +34,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 					createText(
 						`Entry "${createdEntry.title}" created successfully with ID "${createdEntry.id}"`,
 					),
-					createText(createdEntry),
+					createEntryEmbeddedResource(createdEntry),
 				],
 			}
 		},
@@ -51,7 +51,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 			const entry = await agent.db.getEntry(id)
 			invariant(entry, `Entry with ID "${id}" not found`)
 			return {
-				content: [createText(entry)],
+				content: [createEntryEmbeddedResource(entry)],
 			}
 		},
 	)
@@ -64,7 +64,15 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 		async () => {
 			const entries = await agent.db.getEntries()
-			const entryLinks = entries.map(createText)
+			const entryLinks = entries.map((entry) => {
+				return {
+					type: 'resource_link',
+					uri: `epicme://entries/${entry.id}`,
+					name: entry.title,
+					description: `Journal Entry: "${entry.title}"`,
+					mimeType: 'application/json',
+				} satisfies ResourceContent
+			})
 			return {
 				content: [
 					createText(`Found ${entries.length} entries.`),
@@ -91,7 +99,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 					createText(
 						`Entry "${updatedEntry.title}" (ID: ${id}) updated successfully`,
 					),
-					createText(updatedEntry),
+					createEntryEmbeddedResource(updatedEntry),
 				],
 			}
 		},
@@ -113,7 +121,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 					createText(
 						`Entry "${existingEntry.title}" (ID: ${id}) deleted successfully`,
 					),
-					createText(existingEntry),
+					createEntryEmbeddedResource(existingEntry),
 				],
 			}
 		},
@@ -133,7 +141,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 					createText(
 						`Tag "${createdTag.name}" created successfully with ID "${createdTag.id}"`,
 					),
-					createText(createdTag),
+					createTagEmbeddedResource(createdTag),
 				],
 			}
 		},
@@ -150,7 +158,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 			const tag = await agent.db.getTag(id)
 			invariant(tag, `Tag ID "${id}" not found`)
 			return {
-				content: [createText(tag)],
+				content: [createTagEmbeddedResource(tag)],
 			}
 		},
 	)
@@ -163,7 +171,15 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 		async () => {
 			const tags = await agent.db.getTags()
-			const tagLinks = tags.map(createText)
+			const tagLinks = tags.map((tag) => {
+				return {
+					type: 'resource_link',
+					uri: `epicme://tags/${tag.id}`,
+					name: tag.name,
+					description: `Tag: "${tag.name}"`,
+					mimeType: 'application/json',
+				} satisfies ResourceContent
+			})
 			return {
 				content: [createText(`Found ${tags.length} tags.`), ...tagLinks],
 			}
@@ -184,7 +200,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 					createText(
 						`Tag "${updatedTag.name}" (ID: ${id}) updated successfully`,
 					),
-					createText(updatedTag),
+					createTagEmbeddedResource(updatedTag),
 				],
 			}
 		},
@@ -206,7 +222,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 					createText(
 						`Tag "${existingTag.name}" (ID: ${id}) deleted successfully`,
 					),
-					createText(existingTag),
+					createTagEmbeddedResource(existingTag),
 				],
 			}
 		},
@@ -233,8 +249,8 @@ export async function initializeTools(agent: EpicMeMCP) {
 					createText(
 						`Tag "${tag.name}" (ID: ${entryTag.tagId}) added to entry "${entry.title}" (ID: ${entryTag.entryId}) successfully`,
 					),
-					createText(tag),
-					createText(entry),
+					createTagEmbeddedResource(tag),
+					createEntryEmbeddedResource(entry),
 				],
 			}
 		},
@@ -246,5 +262,29 @@ function createText(text: unknown): CallToolResult['content'][number] {
 		return { type: 'text', text }
 	} else {
 		return { type: 'text', text: JSON.stringify(text) }
+	}
+}
+
+type ResourceContent = CallToolResult['content'][number]
+
+function createEntryEmbeddedResource(entry: { id: number }): ResourceContent {
+	return {
+		type: 'resource',
+		resource: {
+			uri: `epicme://entries/${entry.id}`,
+			mimeType: 'application/json',
+			text: JSON.stringify(entry),
+		},
+	}
+}
+
+function createTagEmbeddedResource(tag: { id: number }): ResourceContent {
+	return {
+		type: 'resource',
+		resource: {
+			uri: `epicme://tags/${tag.id}`,
+			mimeType: 'application/json',
+			text: JSON.stringify(tag),
+		},
 	}
 }

@@ -1,0 +1,61 @@
+# Resources in Tools
+
+In the previous exercise, you learned how to expose structured data (like journal entries and tags) as **resources** using the Model Context Protocol (MCP). You registered resources, made them discoverable, and enabled clients to list and read them by URI.
+
+But the data our tools return involves those resources. What if you want a tool to _return_ a resource, or a reference to one, as part of its response? This is where MCP's support for **embedding** and **linking** resources in tool responses comes in.
+
+## Why Embed or Link Resources in Tools?
+
+By embedding or linking resources in your tool responses, you enable clients and LLMs to:
+
+- Access rich, structured context directly from tool outputs
+- Subscribe to updates or fetch more details on demand
+- Build workflows that combine actions (tools) and context (resources)
+
+This unlocks powerful new user experiences, like letting a user create a journal entry and immediately get a reference to it, or listing all tags as clickable resource links.
+
+## Embedded Resources
+
+Sometimes, you want your tool to return the _full_ resource data. MCP supports this with the `type: 'resource'` content type in tool responses. This embeds the resource (including its URI, mimeType, and data) directly in the response.
+
+```json
+{
+	"type": "resource",
+	"resource": {
+		"uri": "gym://equipment/beam-001",
+		"mimeType": "application/json",
+		"text": "{\"name\":\"Balance Beam\",\"category\":\"Apparatus\",\"length\":5.0,\"unit\":\"meters\"}"
+	}
+}
+```
+
+This is useful when the resource is small or when you want the client/LLM to have all the details immediately.
+
+- 📜 [MCP Spec: Tools (Embedded Resources)](https://modelcontextprotocol.io/specification/2025-06-18/server/tools#embedded-resources)
+
+## Linked Resources
+
+Other times, you want to _reference_ a resource without including all its data. MCP supports this with the `type: 'resource_link'` content type. This provides a URI and metadata, letting the client/LLM fetch the resource if needed.
+
+```json
+{
+	"type": "resource_link",
+	"uri": "gym://equipment/vault-002",
+	"name": "Vault Table",
+	"description": "Gymnastics Equipment: Vault Table",
+	"mimeType": "application/json"
+}
+```
+
+This is ideal for lists, large resources, or when you want to let the client decide what to fetch.
+
+## What You'll Do in This Exercise
+
+You'll update your EpicMe journaling app's tools to:
+
+1. **Embed resources** in tool responses (e.g., have `get_entry` return the entry as an embedded resource).
+2. **Link to resources** in tool responses (e.g., have `list_entries` and `list_tags` return resource links for each entry/tag).
+
+By the end, your tools and resources will work hand-in-hand, enabling richer, more actionable results for clients and LLMs.
+
+- 📜 [MCP Spec: Tools (Resource Links)](https://modelcontextprotocol.io/specification/2025-06-18/server/tools#resource-links)
