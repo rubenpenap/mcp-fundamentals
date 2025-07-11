@@ -3,18 +3,23 @@ import path from 'node:path'
 import { invariant } from '@epic-web/invariant'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
-import { test, beforeAll, afterAll, expect } from 'vitest'
+import { test, expect } from 'vitest'
 
-let client: Client
-const EPIC_ME_DB_PATH = `./test.ignored/db.${process.env.VITEST_WORKER_ID}.sqlite`
+function getTestDbPath() {
+	return `./test.ignored/db.${process.env.VITEST_WORKER_ID}.${Math.random().toString(36).slice(2)}.sqlite`
+}
 
-beforeAll(async () => {
+async function setupClient({ capabilities = {} } = {}) {
+	const EPIC_ME_DB_PATH = getTestDbPath()
 	const dir = path.dirname(EPIC_ME_DB_PATH)
 	await fs.mkdir(dir, { recursive: true })
-	client = new Client({
-		name: 'EpicMeTester',
-		version: '1.0.0',
-	})
+	const client = new Client(
+		{
+			name: 'EpicMeTester',
+			version: '1.0.0',
+		},
+		{ capabilities },
+	)
 	const transport = new StdioClientTransport({
 		command: 'tsx',
 		args: ['src/index.ts'],
@@ -22,16 +27,22 @@ beforeAll(async () => {
 			...process.env,
 			EPIC_ME_DB_PATH,
 		},
+		stderr: 'ignore',
 	})
 	await client.connect(transport)
-})
-
-afterAll(async () => {
-	await client.transport?.close()
-	await fs.unlink(EPIC_ME_DB_PATH)
-})
+	return {
+		client,
+		EPIC_ME_DB_PATH,
+		async [Symbol.asyncDispose]() {
+			await client.transport?.close()
+			await fs.unlink(EPIC_ME_DB_PATH)
+		},
+	}
+}
 
 test('Tool Definition', async () => {
+	await using setup = await setupClient()
+	const { client } = setup
 	const list = await client.listTools()
 	const [firstTool] = list.tools
 	invariant(firstTool, '🚨 No tools found')
@@ -58,6 +69,8 @@ test('Tool Definition', async () => {
 })
 
 test('Tool Call', async () => {
+	await using setup = await setupClient()
+	const { client } = setup
 	const result = await client.callTool({
 		name: 'create_entry',
 		arguments: {
@@ -81,6 +94,8 @@ test('Tool Call', async () => {
 })
 
 test('Resource Templates List', async () => {
+	await using setup = await setupClient()
+	const { client } = setup
 	const list = await client.listResourceTemplates()
 
 	// 🚨 Proactive check: Ensure resource templates are registered
@@ -108,6 +123,8 @@ test('Resource Templates List', async () => {
 })
 
 test('Resource List - Entries', async () => {
+	await using setup = await setupClient()
+	const { client } = setup
 	// First create some entries to test against
 	await client.callTool({
 		name: 'create_entry',
@@ -162,6 +179,8 @@ test('Resource List - Entries', async () => {
 })
 
 test('Resource List - Tags', async () => {
+	await using setup = await setupClient()
+	const { client } = setup
 	// Create a tag to test against
 	await client.callTool({
 		name: 'create_tag',

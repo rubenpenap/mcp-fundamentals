@@ -3,15 +3,17 @@ import path from 'node:path'
 import { invariant } from '@epic-web/invariant'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
-import { test, beforeAll, afterAll, expect } from 'vitest'
+import { test, expect } from 'vitest'
 
-let client: Client
-const EPIC_ME_DB_PATH = `./test.ignored/db.${process.env.VITEST_WORKER_ID}.sqlite`
+function getTestDbPath() {
+	return `./test.ignored/db.${process.env.VITEST_WORKER_ID}.${Math.random().toString(36).slice(2)}.sqlite`
+}
 
-beforeAll(async () => {
+async function setupClient() {
+	const EPIC_ME_DB_PATH = getTestDbPath()
 	const dir = path.dirname(EPIC_ME_DB_PATH)
 	await fs.mkdir(dir, { recursive: true })
-	client = new Client({
+	const client = new Client({
 		name: 'EpicMeTester',
 		version: '1.0.0',
 	})
@@ -22,16 +24,22 @@ beforeAll(async () => {
 			...process.env,
 			EPIC_ME_DB_PATH,
 		},
+		stderr: 'ignore',
 	})
 	await client.connect(transport)
-})
-
-afterAll(async () => {
-	await client.transport?.close()
-	await fs.unlink(EPIC_ME_DB_PATH)
-})
+	return {
+		client,
+		EPIC_ME_DB_PATH,
+		async [Symbol.asyncDispose]() {
+			await client.transport?.close()
+			await fs.unlink(EPIC_ME_DB_PATH)
+		},
+	}
+}
 
 test('Tool Definition', async () => {
+	await using setup = await setupClient()
+	const { client } = setup
 	const list = await client.listTools()
 
 	// 🚨 Proactive check: Should have both create_entry and get_entry tools
@@ -55,6 +63,8 @@ test('Tool Definition', async () => {
 })
 
 test('Tool Call', async () => {
+	await using setup = await setupClient()
+	const { client } = setup
 	const result = await client.callTool({
 		name: 'create_entry',
 		arguments: {
@@ -78,6 +88,8 @@ test('Tool Call', async () => {
 })
 
 test('Embedded Resource in Tool Response', async () => {
+	await using setup = await setupClient()
+	const { client } = setup
 	// First create an entry to get
 	await client.callTool({
 		name: 'create_entry',

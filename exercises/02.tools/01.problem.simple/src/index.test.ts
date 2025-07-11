@@ -1,12 +1,10 @@
 import { invariant } from '@epic-web/invariant'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
-import { test, beforeAll, afterAll, expect } from 'vitest'
+import { test, expect } from 'vitest'
 
-let client: Client
-
-beforeAll(async () => {
-	client = new Client({
+async function setupClient() {
+	const client = new Client({
 		name: 'EpicMeTester',
 		version: '1.0.0',
 	})
@@ -15,13 +13,17 @@ beforeAll(async () => {
 		args: ['src/index.ts'],
 	})
 	await client.connect(transport)
-})
-
-afterAll(async () => {
-	await client.transport?.close()
-})
+	return {
+		client,
+		async [Symbol.asyncDispose]() {
+			await client.transport?.close()
+		},
+	}
+}
 
 test('Tool Definition', async () => {
+	await using setup = await setupClient()
+	const { client } = setup
 	try {
 		const list = await client.listTools()
 		const [firstTool] = list.tools
@@ -60,6 +62,8 @@ test('Tool Definition', async () => {
 })
 
 test('Tool Call', async () => {
+	await using setup = await setupClient()
+	const { client } = setup
 	try {
 		const result = await client.callTool({
 			name: 'add',

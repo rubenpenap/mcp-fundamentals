@@ -1,27 +1,33 @@
 import { invariant } from '@epic-web/invariant'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
-import { test, beforeAll, afterAll, expect } from 'vitest'
+import { test, expect } from 'vitest'
 
-let client: Client
-
-beforeAll(async () => {
-	client = new Client({
-		name: 'EpicMeTester',
-		version: '1.0.0',
-	})
+async function setupClient({ capabilities = {} } = {}) {
+	const client = new Client(
+		{
+			name: 'EpicMeTester',
+			version: '1.0.0',
+		},
+		{ capabilities },
+	)
 	const transport = new StdioClientTransport({
 		command: 'tsx',
 		args: ['src/index.ts'],
+		stderr: 'ignore',
 	})
 	await client.connect(transport)
-})
-
-afterAll(async () => {
-	await client.transport?.close()
-})
+	return {
+		client,
+		async [Symbol.asyncDispose]() {
+			await client.transport?.close()
+		},
+	}
+}
 
 test('Tool Definition', async () => {
+	await using setup = await setupClient()
+	const { client } = setup
 	const list = await client.listTools()
 	const [firstTool] = list.tools
 	invariant(firstTool, '🚨 No tools found')
@@ -59,6 +65,8 @@ test('Tool Definition', async () => {
 })
 
 test('Tool Call - Successful Addition', async () => {
+	await using setup = await setupClient()
+	const { client } = setup
 	const result = await client.callTool({
 		name: 'add',
 		arguments: {
@@ -80,6 +88,8 @@ test('Tool Call - Successful Addition', async () => {
 })
 
 test('Tool Call - Error with Negative Second Number', async () => {
+	await using setup = await setupClient()
+	const { client } = setup
 	const result = await client.callTool({
 		name: 'add',
 		arguments: {
@@ -125,6 +135,8 @@ test('Tool Call - Error with Negative Second Number', async () => {
 })
 
 test('Tool Call - Another Successful Addition', async () => {
+	await using setup = await setupClient()
+	const { client } = setup
 	const result = await client.callTool({
 		name: 'add',
 		arguments: {
