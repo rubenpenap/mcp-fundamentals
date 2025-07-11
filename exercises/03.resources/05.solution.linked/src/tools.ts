@@ -1,11 +1,17 @@
 import { invariant } from '@epic-web/invariant'
 import { type CallToolResult } from '@modelcontextprotocol/sdk/types.js'
-import { z } from 'zod'
-import { createEntryInputSchema, createTagInputSchema } from './db/schema.ts'
+import {
+	createEntryInputSchema,
+	createTagInputSchema,
+	entryIdSchema,
+	entryTagIdSchema,
+	tagIdSchema,
+	updateEntryInputSchema,
+	updateTagInputSchema,
+} from './db/schema.ts'
 import { type EpicMeMCP } from './index.ts'
 
 export async function initializeTools(agent: EpicMeMCP) {
-	// Entry Tools
 	agent.server.registerTool(
 		'create_entry',
 		{
@@ -34,9 +40,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 		{
 			title: 'Get Entry',
 			description: 'Get a journal entry by ID',
-			inputSchema: {
-				id: z.number().describe('The ID of the entry'),
-			},
+			inputSchema: entryIdSchema,
 		},
 		async ({ id }) => {
 			const entry = await agent.db.getEntry(id)
@@ -50,16 +54,16 @@ export async function initializeTools(agent: EpicMeMCP) {
 		{
 			title: 'List Entries',
 			description: 'List all journal entries',
-			inputSchema: {
-				tagIds: z
-					.array(z.number())
-					.optional()
-					.describe('Optional array of tag IDs to filter entries by'),
-			},
 		},
-		async ({ tagIds }) => {
-			const entries = await agent.db.listEntries(tagIds)
-			return createReply(entries)
+		async () => {
+			const entries = await agent.db.getEntries()
+			const entryLinks = entries.map(createEntryResourceLink)
+			return {
+				content: [
+					createTextContent(`Found ${entries.length} entries.`),
+					...entryLinks,
+				],
+			}
 		},
 	)
 
@@ -69,44 +73,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 			title: 'Update Entry',
 			description:
 				'Update a journal entry. Fields that are not provided (or set to undefined) will not be updated. Fields that are set to null or any other value will be updated.',
-			inputSchema: {
-				id: z.number(),
-				title: z.string().optional().describe('The title of the entry'),
-				content: z.string().optional().describe('The content of the entry'),
-				mood: z
-					.string()
-					.nullable()
-					.optional()
-					.describe(
-						'The mood of the entry (for example: "happy", "sad", "anxious", "excited")',
-					),
-				location: z
-					.string()
-					.nullable()
-					.optional()
-					.describe(
-						'The location of the entry (for example: "home", "work", "school", "park")',
-					),
-				weather: z
-					.string()
-					.nullable()
-					.optional()
-					.describe(
-						'The weather of the entry (for example: "sunny", "cloudy", "rainy", "snowy")',
-					),
-				isPrivate: z
-					.number()
-					.optional()
-					.describe(
-						'Whether the entry is private (1 for private, 0 for public)',
-					),
-				isFavorite: z
-					.number()
-					.optional()
-					.describe(
-						'Whether the entry is a favorite (1 for favorite, 0 for not favorite)',
-					),
-			},
+			inputSchema: updateEntryInputSchema,
 		},
 		async ({ id, ...updates }) => {
 			const existingEntry = await agent.db.getEntry(id)
@@ -123,9 +90,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 		{
 			title: 'Delete Entry',
 			description: 'Delete a journal entry',
-			inputSchema: {
-				id: z.number().describe('The ID of the entry'),
-			},
+			inputSchema: entryIdSchema,
 		},
 		async ({ id }) => {
 			const existingEntry = await agent.db.getEntry(id)
@@ -137,7 +102,6 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 	)
 
-	// Tag Tools
 	agent.server.registerTool(
 		'create_tag',
 		{
@@ -170,9 +134,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 		{
 			title: 'Get Tag',
 			description: 'Get a tag by ID',
-			inputSchema: {
-				id: z.number().describe('The ID of the tag'),
-			},
+			inputSchema: tagIdSchema,
 		},
 		async ({ id }) => {
 			const tag = await agent.db.getTag(id)
@@ -188,8 +150,11 @@ export async function initializeTools(agent: EpicMeMCP) {
 			description: 'List all tags',
 		},
 		async () => {
-			const tags = await agent.db.listTags()
-			return createReply(tags)
+			const tags = await agent.db.getTags()
+			const tagLinks = tags.map(createTagResourceLink)
+			return {
+				content: [createTextContent(`Found ${tags.length} tags.`), ...tagLinks],
+			}
 		},
 	)
 
@@ -198,15 +163,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 		{
 			title: 'Update Tag',
 			description: 'Update a tag',
-			inputSchema: {
-				id: z.number(),
-				...Object.fromEntries(
-					Object.entries(createTagInputSchema).map(([key, value]) => [
-						key,
-						value.nullable().optional(),
-					]),
-				),
-			},
+			inputSchema: updateTagInputSchema,
 		},
 		async ({ id, ...updates }) => {
 			const updatedTag = await agent.db.updateTag(id, updates)
@@ -221,9 +178,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 		{
 			title: 'Delete Tag',
 			description: 'Delete a tag',
-			inputSchema: {
-				id: z.number().describe('The ID of the tag'),
-			},
+			inputSchema: tagIdSchema,
 		},
 		async ({ id }) => {
 			const existingTag = await agent.db.getTag(id)
@@ -235,16 +190,12 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 	)
 
-	// Entry Tag Tools
 	agent.server.registerTool(
 		'add_tag_to_entry',
 		{
 			title: 'Add Tag to Entry',
 			description: 'Add a tag to an entry',
-			inputSchema: {
-				entryId: z.number().describe('The ID of the entry'),
-				tagId: z.number().describe('The ID of the tag'),
-			},
+			inputSchema: entryTagIdSchema,
 		},
 		async ({ entryId, tagId }) => {
 			const tag = await agent.db.getTag(tagId)
