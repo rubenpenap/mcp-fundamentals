@@ -50,7 +50,9 @@ export async function initializeTools(agent: EpicMeMCP) {
 		async ({ id }) => {
 			const entry = await agent.db.getEntry(id)
 			invariant(entry, `Entry with ID "${id}" not found`)
-			return createReply(entry)
+			return {
+				content: [createEntryEmbeddedResource(entry)],
+			}
 		},
 	)
 
