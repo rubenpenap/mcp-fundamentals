@@ -81,94 +81,57 @@ test('Tool Call', async () => {
 })
 
 test('Resource Link in Tool Response', async () => {
-	let result: any
-	try {
-		result = await client.callTool({
-			name: 'create_tag',
-			arguments: {
-				name: 'Linked Tag Test',
-				description: 'This tag should be linked as a resource',
-			},
-		})
+	await client.callTool({
+		name: 'create_tag',
+		arguments: {
+			name: 'Linked Tag Test',
+			description: 'This tag should be linked as a resource',
+		},
+	})
 
-		// 🚨 The key learning objective: Tool responses should include resource_link content
-		// when creating resources, not just text confirmations
+	const listResult = await client.callTool({
+		name: 'list_tags',
+		arguments: {},
+	})
 
-		// Type guard for content array
-		const content = result.content as Array<any>
-		invariant(
-			Array.isArray(content),
-			'🚨 Tool response content must be an array',
-		)
+	const content = listResult.content as Array<any>
+	invariant(Array.isArray(content), '🚨 Tool response content must be an array')
+	console.log(content)
 
-		// Check if response includes resource_link content type
-		const hasResourceLink = content.some(
-			(item: any) => item.type === 'resource_link',
-		)
+	const resourceLink = content.find(
+		(item: any) =>
+			item.type === 'resource_link' &&
+			item.name === 'Linked Tag Test' &&
+			item.uri &&
+			item.uri.includes('tags'),
+	) as any
 
-		if (!hasResourceLink) {
-			throw new Error('Tool response should include resource_link content type')
-		}
+	invariant(
+		resourceLink,
+		'🚨 Resource link for created tag not found in list_tags response',
+	)
+	invariant(resourceLink.uri, '🚨 Resource link must have uri field')
+	invariant(resourceLink.name, '🚨 Resource link must have name field')
+	invariant(
+		typeof resourceLink.uri === 'string',
+		'🚨 Resource link uri must be a string',
+	)
+	invariant(
+		typeof resourceLink.name === 'string',
+		'🚨 Resource link name must be a string',
+	)
+	invariant(
+		resourceLink.uri.includes('tags'),
+		'🚨 Resource link URI should reference the created tag',
+	)
 
-		// Find the resource_link content
-		const resourceLink = content.find(
-			(item: any) => item.type === 'resource_link',
-		) as any
-
-		// 🚨 Proactive checks: Resource link should have proper structure
-		invariant(
-			resourceLink,
-			'🚨 Tool response should include resource_link content type',
-		)
-		invariant(resourceLink.uri, '🚨 Resource link must have uri field')
-		invariant(resourceLink.name, '🚨 Resource link must have name field')
-		invariant(
-			typeof resourceLink.uri === 'string',
-			'🚨 Resource link uri must be a string',
-		)
-		invariant(
-			typeof resourceLink.name === 'string',
-			'🚨 Resource link name must be a string',
-		)
-		invariant(
-			resourceLink.uri.includes('tags'),
-			'🚨 Resource link URI should reference the created tag',
-		)
-
-		expect(resourceLink).toEqual(
-			expect.objectContaining({
-				type: 'resource_link',
-				uri: expect.stringMatching(/epicme:\/\/tags\/\d+/),
-				name: expect.stringMatching(/Linked Tag Test/),
-				description: expect.any(String),
-				mimeType: expect.stringMatching(/application\/json/),
-			}),
-		)
-	} catch (error) {
-		if (typeof result !== 'undefined' && result.content) {
-			console.error(
-				'🚨 Actual content:',
-				JSON.stringify(result.content, null, 2),
-			)
-		}
-		console.error('🚨 Resource linking not implemented in tool responses!')
-		console.error(
-			'🚨 This exercise teaches you how to include resource links in tool responses',
-		)
-		console.error('🚨 You need to:')
-		console.error(
-			'🚨   1. When your tool creates a resource, include a resource_link content item',
-		)
-		console.error('🚨   2. Set type: "resource_link" in the response content')
-		console.error('🚨   3. Include uri, name, description, and mimeType fields')
-		console.error(
-			'🚨   4. The URI should point to the created resource (e.g., epicme://tags/1)',
-		)
-		console.error(
-			'🚨 Example: { type: "resource_link", uri: "epicme://tags/1", name: "My Tag", description: "...", mimeType: "application/json" }',
-		)
-		throw new Error(
-			`🚨 Tool should include resource_link content type when creating resources. ${error}`,
-		)
-	}
+	expect(resourceLink).toEqual(
+		expect.objectContaining({
+			type: 'resource_link',
+			uri: expect.stringMatching(/epicme:\/\/tags\/\d+/),
+			name: expect.stringMatching(/Linked Tag Test/),
+			description: expect.any(String),
+			mimeType: expect.stringMatching(/application\/json/),
+		}),
+	)
 })

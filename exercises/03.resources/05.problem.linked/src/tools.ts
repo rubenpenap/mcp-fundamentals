@@ -64,7 +64,24 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 		async () => {
 			const entries = await agent.db.getEntries()
-			const entryLinks = entries.map(createEntryResourceLink)
+			const entryLinks = entries.map((entry) => {
+				// 🐨 change this to a linked resource to not send more than is necessary
+				return {
+					// 🐨 change this to 'resource_link'
+					type: 'resource',
+					// 🐨 move the uri to here
+					// 🐨 set the name to entry.title
+					// 🐨 set the description to `Journal Entry: "${entry.title}"`
+					// 🐨 move the mimeType
+
+					// 💣 delete the resource object
+					resource: {
+						uri: `epicme://entries/${entry.id}`,
+						mimeType: 'application/json',
+						text: JSON.stringify(entry),
+					},
+				} satisfies ResourceContent
+			})
 			return {
 				content: [
 					createTextContent(`Found ${entries.length} entries.`),
@@ -130,16 +147,10 @@ export async function initializeTools(agent: EpicMeMCP) {
 			const createdTag = await agent.db.createTag(tag)
 			return {
 				content: [
-					{
-						type: 'text',
-						text: `Tag "${createdTag.name}" created successfully with ID "${createdTag.id}"`,
-					},
-					// 🐨 add a resource_link of the tag. It should have
-					// - "type" of "resource_link"
-					// - "uri": a string that is the same as the tag ID
-					// - "name": a string that is the name of the tag
-					// - "description": a string that is the description of the tag (💰 use `tag.description ?? undefined` to handle type issues)
-					// - "mimeType": a string that is "application/json"
+					createTextContent(
+						`Tag "${createdTag.name}" created successfully with ID "${createdTag.id}"`,
+					),
+					createTagEmbeddedResource(createdTag),
 				],
 			}
 		},
@@ -169,7 +180,24 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 		async () => {
 			const tags = await agent.db.getTags()
-			const tagLinks = tags.map(createTagResourceLink)
+			const tagLinks = tags.map((tag) => {
+				// 🐨 change this to a linked resource to not send more than is necessary
+				return {
+					// 🐨 change this to 'resource_link'
+					type: 'resource',
+					// 🐨 move the uri to here
+					// 🐨 set the name to tag.name
+					// 🐨 set the description to `Tag: "${tag.name}"`
+					// 🐨 move the mimeType
+
+					// 💣 delete the resource object
+					resource: {
+						uri: `epicme://tags/${tag.id}`,
+						mimeType: 'application/json',
+						text: JSON.stringify(tag),
+					},
+				} satisfies ResourceContent
+			})
 			return {
 				content: [createTextContent(`Found ${tags.length} tags.`), ...tagLinks],
 			}
@@ -252,37 +280,6 @@ function createTextContent(text: unknown): CallToolResult['content'][number] {
 		return { type: 'text', text }
 	} else {
 		return { type: 'text', text: JSON.stringify(text) }
-	}
-}
-
-type ResourceLinkContent = Extract<
-	CallToolResult['content'][number],
-	{ type: 'resource_link' }
->
-
-function createEntryResourceLink(entry: {
-	id: number
-	title: string
-}): ResourceLinkContent {
-	return {
-		type: 'resource_link',
-		uri: `epicme://entries/${entry.id}`,
-		name: entry.title,
-		description: `Journal Entry: "${entry.title}"`,
-		mimeType: 'application/json',
-	}
-}
-
-function createTagResourceLink(tag: {
-	id: number
-	name: string
-}): ResourceLinkContent {
-	return {
-		type: 'resource_link',
-		uri: `epicme://tags/${tag.id}`,
-		name: tag.name,
-		description: `Tag: "${tag.name}"`,
-		mimeType: 'application/json',
 	}
 }
 

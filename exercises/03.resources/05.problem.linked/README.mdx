@@ -4,16 +4,17 @@
 them even more useful! In this step, you'll learn how to link a resource
 directly in your tool responses.
 
-Why does this matter? Sometimes, a tool's output isn't just plain text—it might
-be a file, a database record, or some other structured data. By linking to
-resource references, you enable clients (and LLMs) to follow links to additional
-context, download files, subscribe to updates, or fetch related data on demand.
+Why does this matter? Sometimes, an embedded resource is more content than is
+necessary for a tool's output. It could be a whole video potentially. By linking
+to resource references, you enable clients (and LLMs) to decide whether they
+want to follow links to additional context, download files, subscribe to updates,
+or fetch related data on demand.
 
 Your goal in this step:
 
-- Update your tools so that, when they create a tag, we tell them it was created
-  and also include a reference to the tag (using the `type: 'resource_link'`
-  content type in the response).
+- Update the `list_entries` and `list_tags` tools so when they create a tag or
+  entry, we tell them it was created and also include a reference to the tag or
+  entry (using the `type: 'resource_link'` content type in the response).
 - Make sure the resource includes the correct URI and metadata, so clients can
   easily fetch the resource if they want more details.
 
@@ -33,7 +34,7 @@ resource:
 }
 ```
 
-To test this out, create a new tag and notice the resource is included in the
-response.
+To test this out, check the response from `list_entries` and `list_tags` and
+notice the resource is included in the response.
 
 - 📜 [MCP Spec: Tools (Resource Links)](https://modelcontextprotocol.io/specification/2025-06-18/server/tools#resource-links)
