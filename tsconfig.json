@@ -81,18 +81,6 @@
     },
     {
       "path": "exercises/04.prompts/03.solution.completion"
-    },
-    {
-      "path": "exercises/05.sampling/01.problem.simple"
-    },
-    {
-      "path": "exercises/05.sampling/01.solution.simple"
-    },
-    {
-      "path": "exercises/05.sampling/02.problem.advanced"
-    },
-    {
-      "path": "exercises/05.sampling/02.solution.advanced"
     }
   ]
 }

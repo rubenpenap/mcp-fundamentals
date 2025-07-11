@@ -22,12 +22,12 @@ flowchart LR
         Host <-->|"MCP Protocol"| S2
         S1 <--> D1
     end
-    subgraph "Internet ."
+    subgraph "Internet"
         S3["MCP Server C"]
         D2[("Remote<br/>Service B")]
         D3[("Remote<br/>Service C")]
-        S2 <-->|"Web APIs"| D2
-        S3 <-->|"Web APIs"| D3
+        S2 <--> D2
+        S3 <--> D3
     end
     Host <-->|"MCP Protocol"| S3
 ```
