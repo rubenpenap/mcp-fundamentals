@@ -81,9 +81,6 @@
     },
     {
       "path": "exercises/04.prompts/03.solution.completion"
-    },
-    {
-      "path": "exercises/04.prompts/04.problem.annotations"
     }
   ]
 }
