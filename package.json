@@ -5,6 +5,7 @@
     "title": "MCP Fundamentals 🧱",
     "subtitle": "Meet users in the AI apps they already use",
     "githubRepo": "https://github.com/epicweb-dev/mcp-fundamentals",
+    "subdomain": "mcp-fundamentals",
     "instructor": {
       "name": "Kent C. Dodds",
       "avatar": "/images/instructor.png",
