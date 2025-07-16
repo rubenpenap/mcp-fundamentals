@@ -15,7 +15,7 @@ const server = new McpServer(
 // 🐨 add a tool to the server with the server.registerTool API
 // - the name should be 'add'
 // - the config object should include a user-facing title and an llm-facing description explaining what it can be used to do (add one and two)
-// - the callback should return a standard text response that says "one and two equals three"
+// - the callback should return a standard text response that says "The sum of 1 and 2 is 3."
 
 async function main() {
 	const transport = new StdioServerTransport()
