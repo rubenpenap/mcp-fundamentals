@@ -3,7 +3,8 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 
 const server = new McpServer(
 	{
-		name: 'EpicMe',
+		name: 'epicme',
+		title: 'EpicMe',
 		version: '1.0.0',
 	},
 	{

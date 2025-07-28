@@ -3,8 +3,9 @@
 // import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 
 // 🐨 create a new McpServer
-// - it should have a name of 'EpicMe' and a version of '1.0.0'
+// - it should have a name of 'epicme', title of 'EpicMe', and a version of '1.0.0'
 // - it should have instructions for the LLM to know what this server can be used to do (we'll start out by saying it can solve math problems)
+// 💰 NOTE: the `instructions` should appear as a property of an object in the second argument of the McpServer constructor
 // 📜 If you're unsure how to do this, check out the MCP TypeScript SDK Docs:
 //   https://github.com/modelcontextprotocol/typescript-sdk
 

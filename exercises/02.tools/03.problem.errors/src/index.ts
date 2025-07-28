@@ -4,7 +4,8 @@ import { z } from 'zod'
 
 const server = new McpServer(
 	{
-		name: 'EpicMe',
+		name: 'epicme',
+		title: 'EpicMe',
 		version: '1.0.0',
 	},
 	{

@@ -77,14 +77,21 @@ sequenceDiagram
 
 ## Example: Defining a Simple Tool
 
-```ts
+```ts lines=7
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 
 const server = new McpServer(
 	{ name: 'hello-world-server', version: '1.0.0' },
-	{ capabilities: { tools: {} }, instructions: 'A simple hello world server.' },
+	{
+		capabilities: {
+			// add the tools object to explicitly declare that this server supports tools
+			tools: {},
+		},
+		instructions: 'A simple hello world server.',
+	},
 )
 
+// register a tool with the server
 server.registerTool(
 	// llm-facing name
 	'hello',
@@ -93,10 +100,15 @@ server.registerTool(
 		title: 'Hello',
 		// llm-facing description (clients could also display this to the user)
 		description: 'Say hello',
+		// add a schema to validate the input
+		inputSchema: {
+			// the input description is llm-facing, (the user may see it as well)
+			name: z.string().describe('The name to say hello to'),
+		},
 	},
-	async () => {
+	async ({ name }) => {
 		return {
-			content: [{ type: 'text', text: 'Hello, world!' }],
+			content: [{ type: 'text', text: `Hello, ${name}!` }],
 		}
 	},
 )
@@ -111,7 +123,9 @@ Example client request:
 	"method": "tools/call",
 	"params": {
 		"name": "hello",
-		"arguments": {}
+		"arguments": {
+			"name": "Kody"
+		}
 	}
 }
 ```
@@ -126,7 +140,7 @@ Example server response:
 		"content": [
 			{
 				"type": "text",
-				"text": "Hello, world!"
+				"text": "Hello, Kody!"
 			}
 		],
 		"isError": false
