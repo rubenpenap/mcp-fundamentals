@@ -28,7 +28,7 @@ export async function initializeResources(agent: EpicMeMCP) {
 		'tag',
 		new ResourceTemplate('epicme://tags/{id}', {
 			// 🐨 implement this list callback to get all tags (💰 agent.db.getTags())
-			// 🐨 return an array of resource listings (💰 each object has a name, uri, and mimeType).
+			// 🐨 return an object with a "resources" property that is an array of resource listings (💰 each object has a name, uri, and mimeType).
 			list: undefined,
 		}),
 		{
@@ -54,7 +54,7 @@ export async function initializeResources(agent: EpicMeMCP) {
 		'entry',
 		new ResourceTemplate('epicme://entries/{id}', {
 			// 🐨 implement this list callback to get all entries (💰 agent.db.getEntries())
-			// 🐨 return an array of resource listings (💰 each object has a name, uri, and mimeType).
+			// 🐨 return an object with a "resources" property that is an array of resource listings (💰 each object has a name, uri, and mimeType).
 			list: undefined,
 		}),
 		{
