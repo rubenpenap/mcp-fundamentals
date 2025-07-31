@@ -63,19 +63,10 @@ export async function initializeResources(agent: EpicMeMCP) {
 	agent.server.registerResource(
 		'entry',
 		new ResourceTemplate('epicme://entries/{id}', {
+			list: undefined,
 			// 🐨 add a `complete` callback for the `id` parameter
 			// 🐨 accept a value and return an array of strings of ids that include the value
 			// 💰 const entries = await agent.db.getEntries()
-			list: async () => {
-				const entries = await agent.db.getEntries()
-				return {
-					resources: entries.map((entry) => ({
-						name: entry.title,
-						uri: `epicme://entries/${entry.id}`,
-						mimeType: 'application/json',
-					})),
-				}
-			},
 		}),
 		{
 			title: 'Journal Entry',

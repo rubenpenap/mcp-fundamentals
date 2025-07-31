@@ -1,7 +1,7 @@
 # Resource Templates List
 
-👨‍💼 Our users want to be able to see a list of all entries and tags. So let's
-implement the `list` callback for our resource templates.
+👨‍💼 Our users want to be able to see a list of all tags. So let's implement the
+`list` callback for our resource templates.
 
 ```ts
 import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js'
@@ -27,8 +27,8 @@ agent.server.registerResource(
 ```
 
 Notice how the `list` callback queries the database and returns a resource
-listing for each name. This pattern is exactly what you'll use to expose entries
-and tags from your own database.
+listing for each name. This pattern is exactly what you'll use to expose tags
+from your own database.
 
 <callout-success>
 	The reason for the `list` callback is to make it easy for clients to get a
@@ -36,12 +36,5 @@ and tags from your own database.
 	having to request the entire resource (notice we only return the name, URI,
 	and type in the `list` callback).
 </callout-success>
-
-Your goal in this step:
-
-- Use resource templates to expose entries and tags from your database, each
-  accessible by a unique URI.
-- Make sure clients can list all available entries and tags (using the `list`
-  callback), and read the details for any specific one.
 
 To test this out, click the "List Resources" button in the MCP Inspector.

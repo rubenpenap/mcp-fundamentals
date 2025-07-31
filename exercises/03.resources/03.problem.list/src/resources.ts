@@ -53,8 +53,8 @@ export async function initializeResources(agent: EpicMeMCP) {
 	agent.server.registerResource(
 		'entry',
 		new ResourceTemplate('epicme://entries/{id}', {
-			// 🐨 implement this list callback to get all entries (💰 agent.db.getEntries())
-			// 🐨 return an object with a "resources" property that is an array of resource listings (💰 each object has a name, uri, and mimeType).
+			// 🦉 there are probably too many journal entries to list them all, so
+			// we'll not implement the list callback for this resource template.
 			list: undefined,
 		}),
 		{
