@@ -12,7 +12,7 @@ import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js'
 
 const NAMES = ['Alice', 'Bob', 'Charlie']
 
-agent.server.registerResource(
+agent.mcp.registerResource(
 	'hello',
 	new ResourceTemplate('hello://{name}', {
 		complete: {

@@ -191,7 +191,7 @@ test('Tags Resource Read', async () => {
 				'🚨 This means you haven\'t registered the "tags" resource properly',
 			)
 			console.error(
-				'🚨 In src/resources.ts, use agent.server.registerResource() to create a "tags" resource',
+				'🚨 In src/resources.ts, use agent.mcp.registerResource() to create a "tags" resource',
 			)
 			console.error(
 				'🚨 The resource should return JSON array of all tags from agent.db.getTags()',

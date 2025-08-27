@@ -3,7 +3,7 @@ import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { type EpicMeMCP } from './index.ts'
 
 export async function initializeResources(agent: EpicMeMCP) {
-	agent.server.registerResource(
+	agent.mcp.registerResource(
 		'tags',
 		'epicme://tags',
 		{
@@ -24,7 +24,7 @@ export async function initializeResources(agent: EpicMeMCP) {
 		},
 	)
 
-	agent.server.registerResource(
+	agent.mcp.registerResource(
 		'tag',
 		new ResourceTemplate('epicme://tags/{id}', {
 			// 🐨 implement this list callback to get all tags (💰 agent.db.getTags())
@@ -50,7 +50,7 @@ export async function initializeResources(agent: EpicMeMCP) {
 		},
 	)
 
-	agent.server.registerResource(
+	agent.mcp.registerResource(
 		'entry',
 		new ResourceTemplate('epicme://entries/{id}', {
 			// 🦉 there are probably too many journal entries to list them all, so
