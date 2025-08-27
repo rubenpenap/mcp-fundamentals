@@ -144,7 +144,7 @@ test('Prompts List', async () => {
 				'🚨   2. Create an initializePrompts function in prompts.ts.',
 			)
 			console.error(
-				'🚨   3. Use mcp.registerPrompt() to register prompts (e.g., for suggesting tags).',
+				'🚨   3. Use server.registerPrompt() to register prompts (e.g., for suggesting tags).',
 			)
 			console.error(
 				'🚨   4. Call initializePrompts() in your main init() method.',

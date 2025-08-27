@@ -14,7 +14,7 @@ database:
 ```ts
 import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js'
 
-agent.mcp.registerResource(
+agent.server.registerResource(
 	'hello',
 	new ResourceTemplate('hello://{name}', {
 		// this is required to be specified, but we'll implement it later...

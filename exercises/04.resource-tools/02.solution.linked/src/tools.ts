@@ -12,7 +12,7 @@ import {
 import { type EpicMeMCP } from './index.ts'
 
 export async function initializeTools(agent: EpicMeMCP) {
-	agent.mcp.registerTool(
+	agent.server.registerTool(
 		'create_entry',
 		{
 			title: 'Create Entry',
@@ -40,7 +40,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 	)
 
-	agent.mcp.registerTool(
+	agent.server.registerTool(
 		'get_entry',
 		{
 			title: 'Get Entry',
@@ -56,7 +56,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 	)
 
-	agent.mcp.registerTool(
+	agent.server.registerTool(
 		'list_entries',
 		{
 			title: 'List Entries',
@@ -82,7 +82,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 	)
 
-	agent.mcp.registerTool(
+	agent.server.registerTool(
 		'update_entry',
 		{
 			title: 'Update Entry',
@@ -105,7 +105,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 	)
 
-	agent.mcp.registerTool(
+	agent.server.registerTool(
 		'delete_entry',
 		{
 			title: 'Delete Entry',
@@ -127,7 +127,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 	)
 
-	agent.mcp.registerTool(
+	agent.server.registerTool(
 		'create_tag',
 		{
 			title: 'Create Tag',
@@ -147,7 +147,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 	)
 
-	agent.mcp.registerTool(
+	agent.server.registerTool(
 		'get_tag',
 		{
 			title: 'Get Tag',
@@ -163,7 +163,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 	)
 
-	agent.mcp.registerTool(
+	agent.server.registerTool(
 		'list_tags',
 		{
 			title: 'List Tags',
@@ -186,7 +186,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 	)
 
-	agent.mcp.registerTool(
+	agent.server.registerTool(
 		'update_tag',
 		{
 			title: 'Update Tag',
@@ -206,7 +206,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 	)
 
-	agent.mcp.registerTool(
+	agent.server.registerTool(
 		'delete_tag',
 		{
 			title: 'Delete Tag',
@@ -228,7 +228,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 	)
 
-	agent.mcp.registerTool(
+	agent.server.registerTool(
 		'add_tag_to_entry',
 		{
 			title: 'Add Tag to Entry',

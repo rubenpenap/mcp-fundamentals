@@ -6,7 +6,7 @@
 ```ts
 import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js'
 
-agent.mcp.registerResource(
+agent.server.registerResource(
 	'hello',
 	new ResourceTemplate('hello://{name}', {
 		list: async () => {

@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { type EpicMeMCP } from './index.ts'
 
 export async function initializePrompts(agent: EpicMeMCP) {
-	agent.mcp.registerPrompt(
+	agent.server.registerPrompt(
 		'suggest_tags',
 		{
 			title: 'Suggest Tags',

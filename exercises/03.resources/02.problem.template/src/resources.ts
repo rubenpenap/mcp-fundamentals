@@ -4,7 +4,7 @@
 import { type EpicMeMCP } from './index.ts'
 
 export async function initializeResources(agent: EpicMeMCP) {
-	agent.mcp.registerResource(
+	agent.server.registerResource(
 		'tags',
 		'epicme://tags',
 		{

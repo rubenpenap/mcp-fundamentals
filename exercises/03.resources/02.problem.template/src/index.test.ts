@@ -206,7 +206,7 @@ test('Resource Template Read - Entry', async () => {
 			)
 			console.error('🚨 You need to:')
 			console.error(
-				'🚨   1. Register resource templates with mcp.registerResource() using ResourceTemplate',
+				'🚨   1. Register resource templates with server.registerResource() using ResourceTemplate',
 			)
 			console.error(
 				'🚨   2. Use ResourceTemplate to define parameterized URIs like epicme://entries/{id}',

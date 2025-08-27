@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 
-const mcp = new McpServer(
+const server = new McpServer(
 	{
 		name: 'epicme',
 		title: 'EpicMe',
@@ -14,7 +14,7 @@ const mcp = new McpServer(
 
 async function main() {
 	const transport = new StdioServerTransport()
-	await mcp.connect(transport)
+	await server.connect(transport)
 	console.error('EpicMe MCP Server running on stdio')
 }
 

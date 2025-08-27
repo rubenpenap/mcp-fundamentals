@@ -94,7 +94,7 @@ test('Tool Call', async () => {
 				'🚨 This means you haven\'t registered the "add" tool properly',
 			)
 			console.error(
-				'🚨 In src/tools.ts, use agent.mcp.registerTool() to create a simple "add" tool',
+				'🚨 In src/tools.ts, use agent.server.registerTool() to create a simple "add" tool',
 			)
 			console.error(
 				'🚨 The tool should return "1 + 2 = 3" (hardcoded for this simple exercise)',

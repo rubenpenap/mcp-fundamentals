@@ -80,7 +80,7 @@ sequenceDiagram
 ```ts lines=7
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 
-const mcp = new McpServer(
+const server = new McpServer(
 	{ name: 'hello-world-server', version: '1.0.0' },
 	{
 		capabilities: {
@@ -92,7 +92,7 @@ const mcp = new McpServer(
 )
 
 // register a tool with the server
-mcp.registerTool(
+server.registerTool(
 	// llm-facing name
 	'hello',
 	{
