@@ -22,11 +22,19 @@ export class EpicMeMCP {
 				// 🐨 add prompts capabilities here:
 			},
 			instructions: `
-EpicMe is a journaling app that allows users to write about and review their experiences, thoughts, and reflections.
+EpicMe: Personal journaling server with AI-powered organization.
 
-These tools are the user's window into their journal. With these tools and your help, they can create, read, and manage their journal entries and associated tags.
+## Core Workflow
+- Create: \`create_entry\` → \`list_tags\` → \`create_tag\` (if needed) → \`add_tag_to_entry\`
 
-You can also help users add tags to their entries and get all tags for an entry.
+## Best Practices
+- Check \`list_tags\` before creating new tags to avoid duplicates
+- Use \`list_entries\` to find specific entry IDs before \`get_entry\`
+
+## Common Requests
+- "Write in my journal" → \`create_entry\`
+- "Show me my entries" → \`list_entries\` or \`view_journal\`
+- "Organize my entries" → \`list_tags\` then \`create_tag\` and \`add_tag_to_entry\`
 			`.trim(),
 		},
 	)
