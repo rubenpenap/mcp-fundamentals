@@ -11,6 +11,7 @@
       "𝕏": "kentcdodds"
     },
     "product": {
+      "slug": "day-1-setup-intro-and-tools",
       "host": "www.epicai.pro",
       "displayName": "EpicAI.pro",
       "displayNameShort": "Epic AI"
@@ -49,7 +50,7 @@
   },
   "devDependencies": {
     "@epic-web/config": "^1.21.3",
-    "eslint": "^9.35.0",
+    "eslint": "^9.36.0",
     "prettier": "^3.6.2",
     "typescript": "^5.9.2"
   },
