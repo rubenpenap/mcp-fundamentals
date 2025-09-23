@@ -51,7 +51,7 @@ async function runAllSeeds() {
 			// Create the relative path to the seed file from the exercise directory
 			const seedFilePath = path.relative(exerciseDir, file)
 
-			const label = file.split(path.sep).slice(1, 3).join(path.sep)
+			const label = file.split('/').slice(1, 3).join('/')
 			try {
 				await execWithBufferedOutput('npx', ['tsx', seedFilePath], {
 					cwd: exerciseDir,
