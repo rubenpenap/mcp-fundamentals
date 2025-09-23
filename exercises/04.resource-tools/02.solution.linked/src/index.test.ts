@@ -38,6 +38,8 @@ async function setupClient({ capabilities }: ClientOptions = {}) {
 		EPIC_ME_DB_PATH,
 		async [Symbol.asyncDispose]() {
 			await client.transport?.close()
+			// give things a moment to release locks and whatnot
+			await new Promise((r) => setTimeout(r, 100))
 			await fs.unlink(EPIC_ME_DB_PATH).catch(() => {})
 		},
 	}
