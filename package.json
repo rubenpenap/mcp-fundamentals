@@ -16,6 +16,7 @@
       "hidedevtools": "1",
       "hideNavigation": "1"
     },
+    "onboardingVideo": "https://www.epicai.pro/get-started-with-epic-ai-workshops-ol7j2",
     "product": {
       "slug": "day-1-2-mcp-fundamentals",
       "host": "www.epicai.pro",
