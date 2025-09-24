@@ -14,7 +14,12 @@
       "slug": "day-1-setup-intro-and-tools",
       "host": "www.epicai.pro",
       "displayName": "EpicAI.pro",
-      "displayNameShort": "Epic AI"
+      "displayNameShort": "Epic AI",
+      "discordChannelId": "1409600723716411494",
+      "discordTags": [
+        "1409601169801871410",
+        "1409601225573404672"
+      ]
     }
   },
   "type": "module",
