@@ -10,6 +10,12 @@
       "avatar": "/images/instructor.png",
       "𝕏": "kentcdodds"
     },
+    "stackBlitzConfig": {
+      "view": "editor",
+      "terminalHeight": "0",
+      "hidedevtools": "1",
+      "hideNavigation": "1"
+    },
     "product": {
       "slug": "day-1-setup-intro-and-tools",
       "host": "www.epicai.pro",
