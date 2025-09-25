@@ -18,6 +18,7 @@ agent.server.registerResource(
 				resources: names.map((name) => ({
 					name,
 					uri: `hello://${name}`,
+					// NOTE: this mimeType is whatever the client should expect if it retrieves the resource
 					mimeType: 'text/plain',
 					// note this does not include the contents of the resource
 				})),
