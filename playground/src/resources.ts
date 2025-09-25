@@ -37,6 +37,14 @@ export async function initializeResources(agent: EpicMeMCP) {
 					})),
 				}
 			},
+			complete: {
+				async id(value) {
+					const tags = await agent.db.getTags()
+					return tags
+						.map((tag) => tag.id.toString())
+						.filter((id) => id.includes(value))
+				},
+			},
 		}),
 		{
 			title: 'Tag',
@@ -60,15 +68,14 @@ export async function initializeResources(agent: EpicMeMCP) {
 	agent.server.registerResource(
 		'entry',
 		new ResourceTemplate('epicme://entries/{id}', {
-			list: async () => {
-				const entries = await agent.db.getEntries()
-				return {
-					resources: entries.map((entry) => ({
-						name: entry.title,
-						uri: `epicme://entries/${entry.id}`,
-						mimeType: 'application/json',
-					})),
-				}
+			list: undefined,
+			complete: {
+				async id(value) {
+					const entries = await agent.db.getEntries()
+					return entries
+						.map((entry) => entry.id.toString())
+						.filter((id) => id.includes(value))
+				},
 			},
 		}),
 		{
