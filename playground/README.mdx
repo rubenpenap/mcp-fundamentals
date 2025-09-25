@@ -1,0 +1,43 @@
+# Resource Templates List
+
+<EpicVideo url="https://www.epicai.pro/workshops/day-1-2-mcp-fundamentals/resource-templates-list~5v3h2" />
+
+👨‍💼 Our users want to be able to see a list of all tags. So let's implement the
+`list` callback for our resource templates.
+
+```ts
+import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js'
+
+agent.server.registerResource(
+	'hello',
+	new ResourceTemplate('hello://{name}', {
+		list: async () => {
+			// Imagine this is a call to your database to get all names
+			const names = await db.getAllNames()
+			return {
+				resources: names.map((name) => ({
+					name,
+					uri: `hello://${name}`,
+					// NOTE: this mimeType is whatever the client should expect if it retrieves the resource
+					mimeType: 'text/plain',
+					// note this does not include the contents of the resource
+				})),
+			}
+		},
+	}),
+	// ...
+)
+```
+
+Notice how the `list` callback queries the database and returns a resource
+listing for each name. This pattern is exactly what you'll use to expose tags
+from your own database.
+
+<callout-success>
+	The reason for the `list` callback is to make it easy for clients to get a
+	list of available resources without having to know the exact URIs and without
+	having to request the entire resource (notice we only return the name, URI,
+	and type in the `list` callback).
+</callout-success>
+
+To test this out, click the "List Resources" button in the MCP Inspector.
