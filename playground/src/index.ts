@@ -16,6 +16,7 @@ export class EpicMeMCP {
 			capabilities: {
 				tools: {},
 				resources: {},
+				// 🐨 add completions capability
 			},
 			instructions: `
 EpicMe: Personal journaling server with AI-powered organization.

@@ -98,111 +98,105 @@ test('Tool Call', async () => {
 	)
 })
 
-test('Resource Templates List', async () => {
+test('Resource Template Completions', async () => {
 	await using setup = await setupClient()
 	const { client } = setup
-	const list = await client.listResourceTemplates()
+	// First create some entries to have data for completion
+	await client.callTool({
+		name: 'create_entry',
+		arguments: {
+			title: 'Completion Test Entry 1',
+			content: 'This is for testing completions',
+		},
+	})
+
+	await client.callTool({
+		name: 'create_entry',
+		arguments: {
+			title: 'Completion Test Entry 2',
+			content: 'This is another completion test',
+		},
+	})
+
+	// Test that resource templates exist
+	const templates = await client.listResourceTemplates()
 
 	// 🚨 Proactive check: Ensure resource templates are registered
 	invariant(
-		list.resourceTemplates.length > 0,
-		'🚨 No resource templates found - this exercise requires implementing parameterized resources with list callbacks',
+		templates.resourceTemplates.length > 0,
+		'🚨 No resource templates found - this exercise requires implementing resource templates',
 	)
 
-	const entriesTemplate = list.resourceTemplates.find(
+	const entriesTemplate = templates.resourceTemplates.find(
 		(rt) => rt.uriTemplate.includes('entries') && rt.uriTemplate.includes('{'),
 	)
-	const tagsTemplate = list.resourceTemplates.find(
-		(rt) => rt.uriTemplate.includes('tags') && rt.uriTemplate.includes('{'),
-	)
-
-	// 🚨 Proactive checks for specific templates
 	invariant(
 		entriesTemplate,
 		'🚨 No entries resource template found - should implement epicme://entries/{id} template',
 	)
-	invariant(
-		tagsTemplate,
-		'🚨 No tags resource template found - should implement epicme://tags/{id} template',
-	)
-})
 
-test('Resource List - Entries', async () => {
-	await using setup = await setupClient()
-	const { client } = setup
-	// First create some entries to test against
-	await client.callTool({
-		name: 'create_entry',
-		arguments: {
-			title: 'List Test Entry 1',
-			content: 'This is test entry 1',
-		},
-	})
+	// 🚨 The key learning objective for this exercise is adding completion support
+	// This requires BOTH declaring completions capability AND implementing complete callbacks
 
-	await client.callTool({
-		name: 'create_entry',
-		arguments: {
-			title: 'List Test Entry 2',
-			content: 'This is test entry 2',
-		},
-	})
+	try {
+		// Test completion functionality using the proper MCP SDK method
+		const completionResult = await client.complete({
+			ref: {
+				type: 'ref/resource',
+				uri: entriesTemplate.uriTemplate,
+			},
+			argument: {
+				name: 'id',
+				value: '1', // Should match at least one of our created entries
+			},
+		})
 
-	const list = await client.listResources()
-
-	// Since entries don't have a list callback, they shouldn't appear in the resources list
-	const entryResources = list.resources.filter((r) => r.uri.includes('entries'))
-	expect(entryResources).toHaveLength(0)
-
-	// Verify that the entries template exists but doesn't have a list callback
-	const templatesList = await client.listResourceTemplates()
-	const entriesTemplate = templatesList.resourceTemplates.find(
-		(rt) => rt.uriTemplate.includes('entries') && rt.uriTemplate.includes('{'),
-	)
-	expect(entriesTemplate).toBeDefined()
-	expect(entriesTemplate?.list).toBeUndefined()
-})
-
-test('Resource List - Tags', async () => {
-	await using setup = await setupClient()
-	const { client } = setup
-	// Create a tag to test against
-	await client.callTool({
-		name: 'create_tag',
-		arguments: {
-			name: 'List Test Tag',
-			description: 'This is a test tag for listing',
-		},
-	})
-
-	const list = await client.listResources()
-
-	// 🚨 Proactive check: Ensure list callback returns actual tags
-	const tagResources = list.resources.filter((r) => r.uri.includes('tags'))
-	invariant(
-		tagResources.length > 0,
-		'🚨 No tag resources found in list - the list callback should return actual tags from the database',
-	)
-
-	// Should have both static resource and parameterized resources from list callback
-	const staticTagsResource = tagResources.find((r) => r.uri === 'epicme://tags')
-	const parameterizedTagResources = tagResources.filter((r) =>
-		r.uri.match(/epicme:\/\/tags\/\d+/),
-	)
-
-	// 🚨 Proactive check: List should include resources from template list callback
-	invariant(
-		parameterizedTagResources.length > 0,
-		'🚨 No parameterized tag resources found - the resource template list callback should return individual tags',
-	)
-
-	// Validate the structure of parameterized tag resources (from list callback)
-	parameterizedTagResources.forEach((resource) => {
-		expect(resource).toEqual(
-			expect.objectContaining({
-				name: expect.any(String),
-				uri: expect.stringMatching(/epicme:\/\/tags\/\d+/),
-				mimeType: 'application/json',
-			}),
+		// 🚨 Proactive check: Completion should return results
+		invariant(
+			Array.isArray(completionResult.completion?.values),
+			'🚨 Completion should return an array of values',
 		)
-	})
+		invariant(
+			completionResult.completion.values.length > 0,
+			'🚨 Completion should return at least one matching result for id="1"',
+		)
+
+		// Check that completion values are strings
+		completionResult.completion.values.forEach((value: any) => {
+			invariant(
+				typeof value === 'string',
+				'🚨 Completion values should be strings',
+			)
+		})
+	} catch (error: any) {
+		console.error('🚨 Resource template completion not fully implemented!')
+		console.error(
+			'🚨 This exercise teaches you how to add completion support to resource templates',
+		)
+		console.error('🚨 You need to:')
+		console.error('🚨   1. Add "completion" to your server capabilities')
+		console.error('🚨   2. Add complete callback to your ResourceTemplate:')
+		console.error(
+			'🚨      complete: { async id(value) { return ["1", "2", "3"] } }',
+		)
+		console.error(
+			'🚨   3. The complete callback should filter entries matching the partial value',
+		)
+		console.error('🚨   4. Return an array of valid completion strings')
+		console.error(`🚨 Error details: ${error?.message || error}`)
+
+		if (error?.code === -32601) {
+			throw new Error(
+				'🚨 Completion capability not declared - add "completion" to server capabilities and implement complete callbacks',
+			)
+		} else if (error?.code === -32602) {
+			throw new Error(
+				'🚨 Complete callback not implemented - add complete: { async id(value) { ... } } to your ResourceTemplate',
+			)
+		} else {
+			throw new Error(
+				`🚨 Resource template completion not working - check capability declaration and complete callback implementation. ${error}`,
+			)
+		}
+	}
 })
