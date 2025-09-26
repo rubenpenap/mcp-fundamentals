@@ -51,7 +51,13 @@ export async function initializeTools(agent: EpicMeMCP) {
 			const entry = await agent.db.getEntry(id)
 			invariant(entry, `Entry with ID "${id}" not found`)
 			return {
-				content: [createText(entry)],
+				// 🐨 update this to an embedded resource with:
+				// - "type" of "resource"
+				// - "resource" object with the following properties:
+				//   - "uri" which is the URI of the entry (epicme://entries/{id})
+				//   - "mimeType" of "application/json"
+				//   - "text" of the JSON stringified entry
+				content: [{ type: 'text', text: JSON.stringify(entry) }],
 			}
 		},
 	)

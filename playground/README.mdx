@@ -1,47 +1,31 @@
-# Resource Template Completions
+# Embedded Resources
 
-<EpicVideo url="https://www.epicai.pro/workshops/day-1-2-mcp-fundamentals/resource-template-completions~2wp57" />
+<EpicVideo url="https://www.epicai.pro/workshops/day-1-2-mcp-fundamentals/embedded-resources~07e0z" />
 
-👨‍💼 Now that our users have a bunch of entries and tags, they'll want to be able
-to search for them. Let's add some completions to our resource templates to
-make this possible.
+👨‍💼 Right now we have a `get_entry` tool that returns a journal entry. So LLMs
+can decide to get the entry details if it's relevant to the task. We also have
+a resource for getting entries by IDs as well.
 
-This involves a simple callback as a part of our `ResourceTemplate` definition.
-For example:
+The MCP spec has a `resource` content type that allows you to embed resources
+in tool responses. So instead of just returning the entry details, we can
+include the entry resource in the response so the MCP client can subscribe to it
+or request it again in the future.
 
-```ts lines=8-17
-import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js'
+Here's an example of the content type if we were to embed a taco resource:
 
-const NAMES = ['Alice', 'Bob', 'Charlie']
-
-agent.server.registerResource(
-	'hello',
-	new ResourceTemplate('hello://{name}', {
-		complete: {
-			// this is an object with a key for each parameter in the resource template
-			// it accepts the value the user has typed so far and returns a string array
-			// of valid matching values
-			async name(value) {
-				// this is a function that returns a string array of valid matching values
-				// for the `name` parameter
-				return NAMES.filter((name) => name.includes(value))
-			},
-		},
-		list: async () => {
-			// ...
-		},
-	}),
-	{
-		title: 'Hello',
-		description: 'Say hello to anyone by name!',
-	},
-	async (uri, { name }) => {
-		// ...
-	},
-)
+```json
+{
+	"type": "resource",
+	"resource": {
+		"uri": "taco://ingredients/1",
+		"mimeType": "application/json",
+		"text": "{\"name\": \"Lettuce\", \"description\": \"A delicious lettuce ingredient\"}"
+	}
+}
 ```
 
-You'll also want to add a `completions` capability to your server.
+Let's update the `get_entry` tool to embed the entry resource in the response.
+Test this out by using the `get_entry` tool and make sure it shows the resource
+info in the response.
 
-Test this out by clicking on a resource template and typing in a value for the
-parameter.
+📜 [MCP Spec: Tools (Embedded Resources)](https://modelcontextprotocol.io/specification/2025-06-18/server/tools#embedded-resources)

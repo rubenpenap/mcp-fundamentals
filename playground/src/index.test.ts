@@ -12,17 +12,14 @@ function getTestDbPath() {
 	return `./test.ignored/db.${process.env.VITEST_WORKER_ID}.${Math.random().toString(36).slice(2)}.sqlite`
 }
 
-async function setupClient({ capabilities }: ClientOptions = {}) {
+async function setupClient() {
 	const EPIC_ME_DB_PATH = getTestDbPath()
 	const dir = path.dirname(EPIC_ME_DB_PATH)
 	await fs.mkdir(dir, { recursive: true })
-	const client = new Client(
-		{
-			name: 'EpicMeTester',
-			version: '1.0.0',
-		},
-		{ capabilities },
-	)
+	const client = new Client({
+		name: 'EpicMeTester',
+		version: '1.0.0',
+	})
 	const transport = new StdioClientTransport({
 		command: 'tsx',
 		args: ['src/index.ts'],
@@ -49,27 +46,24 @@ test('Tool Definition', async () => {
 	await using setup = await setupClient()
 	const { client } = setup
 	const list = await client.listTools()
-	const [firstTool] = list.tools
-	invariant(firstTool, '🚨 No tools found')
 
-	expect(firstTool).toEqual(
-		expect.objectContaining({
-			name: expect.stringMatching(/^create_entry$/i),
-			description: expect.stringMatching(/^create a new journal entry$/i),
-			inputSchema: expect.objectContaining({
-				type: 'object',
-				properties: expect.objectContaining({
-					title: expect.objectContaining({
-						type: 'string',
-						description: expect.stringMatching(/title/i),
-					}),
-					content: expect.objectContaining({
-						type: 'string',
-						description: expect.stringMatching(/content/i),
-					}),
-				}),
-			}),
-		}),
+	// 🚨 Proactive check: Should have both create_entry and get_entry tools
+	invariant(
+		list.tools.length >= 2,
+		'🚨 Should have both create_entry and get_entry tools for this exercise',
+	)
+
+	const createTool = list.tools.find((tool) =>
+		tool.name.toLowerCase().includes('create'),
+	)
+	const getTool = list.tools.find((tool) =>
+		tool.name.toLowerCase().includes('get'),
+	)
+
+	invariant(createTool, '🚨 No create_entry tool found')
+	invariant(
+		getTool,
+		'🚨 No get_entry tool found - this exercise requires implementing get_entry tool',
 	)
 })
 
@@ -98,105 +92,136 @@ test('Tool Call', async () => {
 	)
 })
 
-test('Resource Template Completions', async () => {
+test('Embedded Resource in Tool Response', async () => {
 	await using setup = await setupClient()
 	const { client } = setup
-	// First create some entries to have data for completion
+	// First create an entry to get
 	await client.callTool({
 		name: 'create_entry',
 		arguments: {
-			title: 'Completion Test Entry 1',
-			content: 'This is for testing completions',
+			title: 'Embedded Resource Test',
+			content: 'This entry should be returned as an embedded resource',
 		},
 	})
-
-	await client.callTool({
-		name: 'create_entry',
-		arguments: {
-			title: 'Completion Test Entry 2',
-			content: 'This is another completion test',
-		},
-	})
-
-	// Test that resource templates exist
-	const templates = await client.listResourceTemplates()
-
-	// 🚨 Proactive check: Ensure resource templates are registered
-	invariant(
-		templates.resourceTemplates.length > 0,
-		'🚨 No resource templates found - this exercise requires implementing resource templates',
-	)
-
-	const entriesTemplate = templates.resourceTemplates.find(
-		(rt) => rt.uriTemplate.includes('entries') && rt.uriTemplate.includes('{'),
-	)
-	invariant(
-		entriesTemplate,
-		'🚨 No entries resource template found - should implement epicme://entries/{id} template',
-	)
-
-	// 🚨 The key learning objective for this exercise is adding completion support
-	// This requires BOTH declaring completions capability AND implementing complete callbacks
 
 	try {
-		// Test completion functionality using the proper MCP SDK method
-		const completionResult = await client.complete({
-			ref: {
-				type: 'ref/resource',
-				uri: entriesTemplate.uriTemplate,
-			},
-			argument: {
-				name: 'id',
-				value: '1', // Should match at least one of our created entries
+		const result = await client.callTool({
+			name: 'get_entry',
+			arguments: {
+				id: 1,
 			},
 		})
 
-		// 🚨 Proactive check: Completion should return results
+		// 🚨 The key learning objective: Tool responses should include embedded resources
+		// with type: 'resource' instead of just text content
+
+		// Type guard for content array
+		const content = result.content as Array<any>
 		invariant(
-			Array.isArray(completionResult.completion?.values),
-			'🚨 Completion should return an array of values',
-		)
-		invariant(
-			completionResult.completion.values.length > 0,
-			'🚨 Completion should return at least one matching result for id="1"',
+			Array.isArray(content),
+			'🚨 Tool response content must be an array',
 		)
 
-		// Check that completion values are strings
-		completionResult.completion.values.forEach((value: any) => {
-			invariant(
-				typeof value === 'string',
-				'🚨 Completion values should be strings',
-			)
-		})
-	} catch (error: any) {
-		console.error('🚨 Resource template completion not fully implemented!')
-		console.error(
-			'🚨 This exercise teaches you how to add completion support to resource templates',
+		// Check if response includes embedded resource content type
+		const hasEmbeddedResource = content.some(
+			(item: any) => item.type === 'resource',
 		)
-		console.error('🚨 You need to:')
-		console.error('🚨   1. Add "completion" to your server capabilities')
-		console.error('🚨   2. Add complete callback to your ResourceTemplate:')
-		console.error(
-			'🚨      complete: { async id(value) { return ["1", "2", "3"] } }',
-		)
-		console.error(
-			'🚨   3. The complete callback should filter entries matching the partial value',
-		)
-		console.error('🚨   4. Return an array of valid completion strings')
-		console.error(`🚨 Error details: ${error?.message || error}`)
 
-		if (error?.code === -32601) {
+		if (!hasEmbeddedResource) {
 			throw new Error(
-				'🚨 Completion capability not declared - add "completion" to server capabilities and implement complete callbacks',
-			)
-		} else if (error?.code === -32602) {
-			throw new Error(
-				'🚨 Complete callback not implemented - add complete: { async id(value) { ... } } to your ResourceTemplate',
-			)
-		} else {
-			throw new Error(
-				`🚨 Resource template completion not working - check capability declaration and complete callback implementation. ${error}`,
+				'Tool response should include embedded resource content type',
 			)
 		}
+
+		// Find the embedded resource content
+		const embeddedResource = content.find(
+			(item: any) => item.type === 'resource',
+		) as any
+
+		// 🚨 Proactive checks: Embedded resource should have proper structure
+		invariant(
+			embeddedResource,
+			'🚨 Tool response should include embedded resource content type',
+		)
+		invariant(
+			embeddedResource.resource,
+			'🚨 Embedded resource must have resource field',
+		)
+		invariant(
+			embeddedResource.resource.uri,
+			'🚨 Embedded resource must have uri field',
+		)
+		invariant(
+			embeddedResource.resource.mimeType,
+			'🚨 Embedded resource must have mimeType field',
+		)
+		invariant(
+			embeddedResource.resource.text,
+			'🚨 Embedded resource must have text field',
+		)
+		invariant(
+			typeof embeddedResource.resource.uri === 'string',
+			'🚨 Embedded resource uri must be a string',
+		)
+		invariant(
+			embeddedResource.resource.uri.includes('entries'),
+			'🚨 Embedded resource URI should reference an entry',
+		)
+
+		expect(embeddedResource).toEqual(
+			expect.objectContaining({
+				type: 'resource',
+				resource: expect.objectContaining({
+					uri: expect.stringMatching(/epicme:\/\/entries\/\d+/),
+					mimeType: 'application/json',
+					text: expect.any(String),
+				}),
+			}),
+		)
+
+		// 🚨 Proactive check: Embedded resource text should be valid JSON with entry data
+		let entryData: any
+		try {
+			entryData = JSON.parse(embeddedResource.resource.text)
+		} catch (error) {
+			throw new Error('🚨 Embedded resource text must be valid JSON')
+		}
+
+		invariant(
+			entryData.id,
+			'🚨 Embedded entry resource should contain id field',
+		)
+		invariant(
+			entryData.title,
+			'🚨 Embedded entry resource should contain title field',
+		)
+		invariant(
+			entryData.content,
+			'🚨 Embedded entry resource should contain content field',
+		)
+	} catch (error) {
+		console.error('🚨 Embedded resources not implemented in get_entry tool!')
+		console.error(
+			'🚨 This exercise teaches you how to embed resources in tool responses',
+		)
+		console.error('🚨 You need to:')
+		console.error(
+			'🚨   1. Implement a get_entry tool that takes an id parameter',
+		)
+		console.error(
+			'🚨   2. Instead of returning just text, return content with type: "resource"',
+		)
+		console.error(
+			'🚨   3. Include resource object with uri, mimeType, and text fields',
+		)
+		console.error(
+			'🚨   4. The text field should contain the JSON representation of the entry',
+		)
+		console.error(
+			'🚨 Example: { type: "resource", resource: { uri: "epicme://entries/1", mimeType: "application/json", text: "{\\"id\\": 1, ...}" } }',
+		)
+		throw new Error(
+			`🚨 get_entry tool should return embedded resource content type. ${error}`,
+		)
 	}
 })
