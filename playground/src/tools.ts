@@ -65,21 +65,12 @@ export async function initializeTools(agent: EpicMeMCP) {
 		async () => {
 			const entries = await agent.db.getEntries()
 			const entryLinks = entries.map((entry) => {
-				// 🐨 change this to a linked resource to not send more than is necessary
 				return {
-					// 🐨 change this to 'resource_link'
-					type: 'resource',
-					// 🐨 move the uri to here
-					// 🐨 set the name to entry.title
-					// 🐨 set the description to `Journal Entry: "${entry.title}"`
-					// 🐨 move the mimeType
-
-					// 💣 delete the resource object
-					resource: {
-						uri: `epicme://entries/${entry.id}`,
-						mimeType: 'application/json',
-						text: JSON.stringify(entry),
-					},
+					type: 'resource_link',
+					uri: `epicme://entries/${entry.id}`,
+					name: entry.title,
+					description: `Journal Entry: "${entry.title}"`,
+					mimeType: 'application/json',
 				} satisfies ResourceContent
 			})
 			return {
@@ -181,21 +172,12 @@ export async function initializeTools(agent: EpicMeMCP) {
 		async () => {
 			const tags = await agent.db.getTags()
 			const tagLinks = tags.map((tag) => {
-				// 🐨 change this to a linked resource to not send more than is necessary
 				return {
-					// 🐨 change this to 'resource_link'
-					type: 'resource',
-					// 🐨 move the uri to here
-					// 🐨 set the name to tag.name
-					// 🐨 set the description to `Tag: "${tag.name}"`
-					// 🐨 move the mimeType
-
-					// 💣 delete the resource object
-					resource: {
-						uri: `epicme://tags/${tag.id}`,
-						mimeType: 'application/json',
-						text: JSON.stringify(tag),
-					},
+					type: 'resource_link',
+					uri: `epicme://tags/${tag.id}`,
+					name: tag.name,
+					description: `Tag: "${tag.name}"`,
+					mimeType: 'application/json',
 				} satisfies ResourceContent
 			})
 			return {
