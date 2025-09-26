@@ -1,31 +1,42 @@
-# Embedded Resources
+# Linked Resources
 
-<EpicVideo url="https://www.epicai.pro/workshops/day-1-2-mcp-fundamentals/embedded-resources~07e0z" />
+<EpicVideo url="https://www.epicai.pro/workshops/day-1-2-mcp-fundamentals/linked-resources~j6z37" />
 
-👨‍💼 Right now we have a `get_entry` tool that returns a journal entry. So LLMs
-can decide to get the entry details if it's relevant to the task. We also have
-a resource for getting entries by IDs as well.
+👨‍💼 You've already made your resources discoverable and accessible—now let's make
+them even more useful! In this step, you'll learn how to link a resource
+directly in your tool responses.
 
-The MCP spec has a `resource` content type that allows you to embed resources
-in tool responses. So instead of just returning the entry details, we can
-include the entry resource in the response so the MCP client can subscribe to it
-or request it again in the future.
+Why does this matter? Sometimes, an embedded resource is more content than is
+necessary for a tool's output. It could be a whole video potentially. By linking
+to resource references, you enable clients (and LLMs) to decide whether they
+want to follow links to additional context, download files, subscribe to updates,
+or fetch related data on demand.
 
-Here's an example of the content type if we were to embed a taco resource:
+Your goal in this step:
+
+- Update the `list_entries` and `list_tags` tools so when they create a tag or
+  entry, we tell them it was created and also include a reference to the tag or
+  entry (using the `type: 'resource_link'` content type in the response).
+- Make sure the resource includes the correct URI and metadata, so clients can
+  easily fetch the resource if they want more details.
+
+This pattern unlocks powerful workflows—tools and resources working together to
+provide richer, more actionable results.
+
+Here's an example of the content type if we were to link to a taco ingredient
+resource:
 
 ```json
 {
-	"type": "resource",
-	"resource": {
-		"uri": "taco://ingredients/1",
-		"mimeType": "application/json",
-		"text": "{\"name\": \"Lettuce\", \"description\": \"A delicious lettuce ingredient\"}"
-	}
+	"type": "resource_link",
+	"uri": "taco://ingredients/1",
+	"name": "Lettuce",
+	"description": "A delicious lettuce ingredient",
+	"mimeType": "application/json"
 }
 ```
 
-Let's update the `get_entry` tool to embed the entry resource in the response.
-Test this out by using the `get_entry` tool and make sure it shows the resource
-info in the response.
+To test this out, check the response from `list_entries` and `list_tags` and
+notice the resource is included in the response.
 
-📜 [MCP Spec: Tools (Embedded Resources)](https://modelcontextprotocol.io/specification/2025-06-18/server/tools#embedded-resources)
+- 📜 [MCP Spec: Tools (Resource Links)](https://modelcontextprotocol.io/specification/2025-06-18/server/tools#resource-links)
