@@ -1,4 +1,6 @@
 import { invariant } from '@epic-web/invariant'
+// 💰 you'll need this
+// import { completable } from '@modelcontextprotocol/sdk/server/completable.js'
 import { z } from 'zod'
 import { type EpicMeMCP } from './index.ts'
 
@@ -9,21 +11,23 @@ export async function initializePrompts(agent: EpicMeMCP) {
 			title: 'Suggest Tags',
 			description: 'Suggest tags for a journal entry',
 			argsSchema: {
+				// 🐨 make this completable with the `completable` function
 				entryId: z
 					.string()
 					.describe('The ID of the journal entry to suggest tags for'),
+				// 🐨 the second argument to completable should be a function that returns an array of strings
+				// that match the value. Use await agent.db.getEntries() to get available entries and match on the id.
 			},
 		},
 		async ({ entryId }) => {
 			invariant(entryId, 'entryId is required')
-			invariant(
-				!Number.isNaN(Number(entryId)),
-				'entryId must be a valid number',
-			)
-			const entry = await agent.db.getEntry(Number(entryId))
-			invariant(entry, `entry with the ID "${entryId}" not found`)
-			const tags = await agent.db.listTags()
+			const entryIdNum = Number(entryId)
+			invariant(!Number.isNaN(entryIdNum), 'entryId must be a valid number')
 
+			const entry = await agent.db.getEntry(entryIdNum)
+			invariant(entry, `entry with the ID "${entryId}" not found`)
+
+			const tags = await agent.db.listTags()
 			return {
 				messages: [
 					{
@@ -33,7 +37,7 @@ export async function initializePrompts(agent: EpicMeMCP) {
 							text: `
 Below is my EpicMe journal entry with ID "${entryId}" and the tags I have available.
 
-Then suggest some tags to add to it. Feel free to suggest new tags I don't have yet.
+Please suggest some tags to add to it. Feel free to suggest new tags I don't have yet.
 
 For each tag I approve, if it does not yet exist, create it with the EpicMe "create_tag" tool. Then add approved tags to the entry with the EpicMe "add_tag_to_entry" tool.
 								`.trim(),

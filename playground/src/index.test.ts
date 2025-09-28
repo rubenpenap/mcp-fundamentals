@@ -101,159 +101,169 @@ test('Tool Call', async () => {
 test('Prompts List', async () => {
 	await using setup = await setupClient()
 	const { client } = setup
-	const list = await client.listPrompts()
-
-	// 🚨 Proactive check: Ensure prompts are registered
-	invariant(
-		list.prompts.length > 0,
-		'🚨 No prompts found - make sure to register prompts with the prompts capability',
-	)
-
-	const tagSuggestionsPrompt = list.prompts.find(
-		(p) => p.name.includes('tag') || p.name.includes('suggest'),
-	)
-	invariant(
-		tagSuggestionsPrompt,
-		'🚨 No tag suggestions prompt found - should include a prompt for suggesting tags',
-	)
-})
-
-test('Optimized Prompt with Embedded Resources', async () => {
-	await using setup = await setupClient()
-	const { client } = setup
-	// First create an entry and tag for testing
-	await client.callTool({
-		name: 'create_entry',
-		arguments: {
-			title: 'Optimized Test Entry',
-			content: 'This entry is for testing optimized prompts',
-		},
-	})
-
-	await client.callTool({
-		name: 'create_tag',
-		arguments: {
-			name: 'Optimization',
-			description: 'Tag for optimization testing',
-		},
-	})
-
-	const list = await client.listPrompts()
-	const firstPrompt = list.prompts[0]
-	invariant(firstPrompt, '🚨 No prompts available to test')
-
 	try {
-		const result = await client.getPrompt({
-			name: firstPrompt.name,
-			arguments: {
-				entryId: '1',
-			},
-		})
+		const list = await client.listPrompts()
 
-		expect(result).toEqual(
+		// 🚨 Proactive check: Ensure prompts are registered
+		invariant(
+			list.prompts.length > 0,
+			'🚨 No prompts found - make sure to register prompts with the prompts capability',
+		)
+
+		const tagSuggestionsPrompt = list.prompts.find(
+			(p) => p.name.includes('tag') || p.name.includes('suggest'),
+		)
+		invariant(
+			tagSuggestionsPrompt,
+			'🚨 No tag suggestions prompt found - should include a prompt for suggesting tags',
+		)
+
+		expect(tagSuggestionsPrompt).toEqual(
 			expect.objectContaining({
-				messages: expect.arrayContaining([
+				name: expect.any(String),
+				description: expect.stringMatching(/tag|suggest/i),
+				arguments: expect.arrayContaining([
 					expect.objectContaining({
-						role: expect.stringMatching(/user|system/),
-						content: expect.objectContaining({
-							type: expect.stringMatching(/text|resource/),
-						}),
+						name: expect.stringMatching(/entry|id/i),
+						description: expect.any(String),
+						required: true,
 					}),
 				]),
 			}),
 		)
+	} catch (error: any) {
+		if (
+			error?.code === -32601 ||
+			error?.message?.includes('Method not found')
+		) {
+			console.error('🚨 Prompts capability not implemented!')
+			console.error(
+				'🚨 This exercise teaches you how to add prompts to your MCP server',
+			)
+			console.error('🚨 You need to:')
+			console.error('🚨   1. Add "prompts" to your server capabilities')
+			console.error(
+				'🚨   2. Create an initializePrompts function in a prompts.ts file',
+			)
+			console.error('🚨   3. Use server.registerPrompt() to register prompts')
+			console.error(
+				'🚨   4. Call initializePrompts() in your main init() method',
+			)
+			console.error(
+				'🚨   5. Register prompts that can help users analyze their journal entries',
+			)
+			console.error(
+				'🚨 In src/index.ts, add prompts capability and request handlers',
+			)
+			throw new Error(
+				`🚨 Prompts capability not declared - add "prompts" to server capabilities and implement prompt handlers. ${error}`,
+			)
+		}
+		throw error
+	}
+})
 
-		// 🚨 Proactive check: Ensure prompt has multiple messages (optimization means embedding data)
+test('Prompt Argument Completion', async () => {
+	await using setup = await setupClient({ capabilities: { completion: true } })
+	const { client } = setup
+	// First create some entries to have data for completion
+	await client.callTool({
+		name: 'create_entry',
+		arguments: {
+			title: 'Completion Test Entry 1',
+			content: 'This is for testing prompt completions',
+		},
+	})
+
+	await client.callTool({
+		name: 'create_entry',
+		arguments: {
+			title: 'Completion Test Entry 2',
+			content: 'This is another prompt completion test',
+		},
+	})
+
+	try {
+		// Test that prompt completion functionality works
+		const list = await client.listPrompts()
 		invariant(
-			result.messages.length > 1,
-			'🚨 Optimized prompt should have multiple messages - instructions plus embedded data',
+			list.prompts.length > 0,
+			'🚨 No prompts found - need prompts to test completion',
 		)
 
-		// 🚨 Proactive check: Ensure at least one message is a resource (embedded data)
-		const resourceMessages = result.messages.filter(
-			(m) => m.content.type === 'resource',
-		)
+		const firstPrompt = list.prompts[0]
+		invariant(firstPrompt, '🚨 No prompts available to test completion')
 		invariant(
-			resourceMessages.length > 0,
-			'🚨 Optimized prompt should embed resource data directly instead of instructing LLM to run tools',
+			firstPrompt.arguments && firstPrompt.arguments.length > 0,
+			'🚨 Prompt should have completable arguments',
 		)
 
-		// 🚨 Proactive check: Ensure prompt doesn't tell LLM to run data retrieval tools (that's what we're optimizing away)
-		const textMessages = result.messages.filter(
-			(m) => m.content.type === 'text',
-		)
-		const hasDataRetrievalInstructions = textMessages.some(
-			(m) =>
-				typeof m.content.text === 'string' &&
-				(m.content.text.toLowerCase().includes('get_entry') ||
-					m.content.text.toLowerCase().includes('list_tags') ||
-					m.content.text.toLowerCase().includes('look up')),
-		)
-		invariant(
-			!hasDataRetrievalInstructions,
-			'🚨 Optimized prompt should NOT instruct LLM to run data retrieval tools like get_entry or list_tags - data should be embedded directly',
-		)
+		const firstArg = firstPrompt.arguments[0]
+		invariant(firstArg, '🚨 First prompt argument should exist')
 
-		// Note: The prompt can still instruct the LLM to use action tools like create_tag or add_tag_to_entry
-
-		// Validate structure of resource messages
-		resourceMessages.forEach((resMsg) => {
-			expect(resMsg.content).toEqual(
-				expect.objectContaining({
-					type: 'resource',
-					resource: expect.objectContaining({
-						uri: expect.any(String),
-						mimeType: 'application/json',
-						text: expect.any(String),
-					}),
-				}),
-			)
-
-			// 🚨 Proactive check: Ensure embedded resource contains valid JSON
-			invariant(
-				'resource' in resMsg.content,
-				'🚨 Resource message must have resource field',
-			)
-			invariant(
-				typeof resMsg.content.resource === 'object' &&
-					resMsg.content.resource !== null,
-				'🚨 Resource must be an object',
-			)
-			invariant(
-				'text' in resMsg.content.resource,
-				'🚨 Resource must have text field',
-			)
-			invariant(
-				typeof resMsg.content.resource.text === 'string',
-				'🚨 Resource text must be a string',
-			)
-			try {
-				JSON.parse(resMsg.content.resource.text)
-			} catch (error) {
-				throw new Error('🚨 Embedded resource data must be valid JSON')
-			}
+		// Test completion functionality using the proper MCP SDK method
+		const completionResult = await client.complete({
+			ref: {
+				type: 'ref/prompt',
+				name: firstPrompt.name,
+			},
+			argument: {
+				name: firstArg.name,
+				value: '1', // Should match at least one of our created entries
+			},
 		})
-	} catch (error) {
-		console.error('🚨 Prompt optimization not properly implemented!')
+
+		// 🚨 Proactive check: Completion should return results
+		invariant(
+			Array.isArray(completionResult.completion?.values),
+			'🚨 Prompt completion should return an array of values',
+		)
+		invariant(
+			completionResult.completion.values.length > 0,
+			'🚨 Prompt completion should return at least one matching result for value="1"',
+		)
+
+		// Check that completion values are strings
+		completionResult.completion.values.forEach((value: any) => {
+			invariant(
+				typeof value === 'string',
+				'🚨 Completion values should be strings',
+			)
+		})
+	} catch (error: any) {
+		console.error('🚨 Prompt argument completion not fully implemented!')
 		console.error(
-			'🚨 This exercise requires you to optimize prompts by embedding resource data directly in the prompt messages, instead of instructing the LLM to call get_entry or list_tags.',
+			'🚨 This exercise teaches you how to add completion support to prompt arguments',
 		)
 		console.error('🚨 You need to:')
+		console.error('🚨   1. Add "completion" to your server capabilities')
 		console.error(
-			'🚨   1. Fetch the entry and tag data in your prompt handler.',
-		)
-		console.error(
-			'🚨   2. Create multiple messages: one with instructions, others with embedded resource content (type: "resource", mimeType: "application/json").',
+			'🚨   2. Import completable from @modelcontextprotocol/sdk/server/completable.js',
 		)
 		console.error(
-			'🚨   3. DO NOT tell the LLM to call get_entry or list_tags - provide the data directly.',
+			'🚨   3. Wrap your prompt argument schema with completable():',
 		)
 		console.error(
-			'🚨   4. Ensure at least one message is a resource, and that the resource contains valid JSON.',
+			'🚨      entryId: completable(z.string(), async (value) => { return ["1", "2", "3"] })',
 		)
-		console.error('🚨 This reduces LLM tool calls and improves performance!')
-		throw new Error(
-			`🚨 Optimized prompt should embed resource data directly, not instruct LLM to fetch it. ${error}`,
+		console.error(
+			'🚨   4. The completion callback should filter entries matching the partial value',
 		)
+		console.error('🚨   5. Return an array of valid completion strings')
+		console.error(`🚨 Error details: ${error?.message || error}`)
+
+		if (error?.code === -32601) {
+			throw new Error(
+				'🚨 Completion capability not declared - add "completion" to server capabilities and use completable() for prompt arguments',
+			)
+		} else if (error?.code === -32602) {
+			throw new Error(
+				'🚨 Completable arguments not implemented - wrap prompt arguments with completable() function',
+			)
+		} else {
+			throw new Error(
+				`🚨 Prompt argument completion not working - check capability declaration and completable() usage. ${error}`,
+			)
+		}
 	}
 })

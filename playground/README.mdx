@@ -1,45 +1,35 @@
-# Optimized Prompts
+# Prompt Completion
 
-<EpicVideo url="https://www.epicai.pro/workshops/day-1-2-mcp-fundamentals/optimized-prompts~2xvk6" />
+<EpicVideo url="https://www.epicai.pro/workshops/day-1-2-mcp-fundamentals/prompt-completion~qflr7" />
 
-👨‍💼 Our users are complaining that when they use the `suggest_tags` prompt, it's
-taking a while to run because it has to run a few tools to get the data it
-needs.
+👨‍💼 As the user searches through the dynamic values it can input for the prompt,
+it would be nice to have auto-completion of values.
 
-Instead, we can just include the data in the prompt!
+We'll use the `completable` function to create a completable prompt.
 
-So replace the places where we instruct the LLM to run tools to acquire the data
-it needs with references to the data itself. Effectively, we'll have a prompt
-with multiple messages:
+```ts
+import { completable } from '@modelcontextprotocol/sdk/server/completable.js'
 
-1. Instructions (please suggest tags)
-2. The entry data
-3. The existing tags
+// ...
 
-You can use embedded resources for the data. For example:
-
-```js
-const prompt = {
-	messages: [
-		{
-			role: 'user',
-			content: {
-				type: 'text',
-				text: '{Instructions}',
+agent.server.registerPrompt(
+	'say_hello',
+	{
+		title: 'Say hello to the user',
+		description: 'Say hello to the user',
+		argsSchema: {
+		name: completable(
+			z.string().describe('The name of the user to say hello to'),
+			async (value) => {
+				const users = await agent.db.getUsers()
+				return users
+					.map((user) => user.name)
+					.filter((name) => name.includes(value))
 			},
-		},
-		{
-			role: 'user',
-			content: {
-				type: 'resource',
-				resource: {
-					uri: '{uri}',
-					mimeType: 'application/json',
-					text: JSON.stringify(data),
-				},
-			},
-		},
-		// etc...
-	],
-}
+		),
+	},
+	async ({ name }) => {
+		// ... return prompt messages
+	},
+)
 ```
