@@ -64,15 +64,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 		async () => {
 			const entries = await agent.db.getEntries()
-			const entryLinks = entries.map((entry) => {
-				return {
-					type: 'resource_link',
-					uri: `epicme://entries/${entry.id}`,
-					name: entry.title,
-					description: `Journal Entry: "${entry.title}"`,
-					mimeType: 'application/json',
-				} satisfies ResourceContent
-			})
+			const entryLinks = entries.map(createEntryResourceLink)
 			return {
 				content: [
 					createText(`Found ${entries.length} entries.`),
@@ -171,15 +163,7 @@ export async function initializeTools(agent: EpicMeMCP) {
 		},
 		async () => {
 			const tags = await agent.db.getTags()
-			const tagLinks = tags.map((tag) => {
-				return {
-					type: 'resource_link',
-					uri: `epicme://tags/${tag.id}`,
-					name: tag.name,
-					description: `Tag: "${tag.name}"`,
-					mimeType: 'application/json',
-				} satisfies ResourceContent
-			})
+			const tagLinks = tags.map(createTagResourceLink)
 			return {
 				content: [createText(`Found ${tags.length} tags.`), ...tagLinks],
 			}
@@ -262,6 +246,37 @@ function createText(text: unknown): CallToolResult['content'][number] {
 		return { type: 'text', text }
 	} else {
 		return { type: 'text', text: JSON.stringify(text) }
+	}
+}
+
+type ResourceLinkContent = Extract<
+	CallToolResult['content'][number],
+	{ type: 'resource_link' }
+>
+
+function createEntryResourceLink(entry: {
+	id: number
+	title: string
+}): ResourceLinkContent {
+	return {
+		type: 'resource_link',
+		uri: `epicme://entries/${entry.id}`,
+		name: entry.title,
+		description: `Journal Entry: "${entry.title}"`,
+		mimeType: 'application/json',
+	}
+}
+
+function createTagResourceLink(tag: {
+	id: number
+	name: string
+}): ResourceLinkContent {
+	return {
+		type: 'resource_link',
+		uri: `epicme://tags/${tag.id}`,
+		name: tag.name,
+		description: `Tag: "${tag.name}"`,
+		mimeType: 'application/json',
 	}
 }
 

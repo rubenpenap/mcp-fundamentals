@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { DB } from './db/index.ts'
+import { initializePrompts } from './prompts.ts'
 import { initializeResources } from './resources.ts'
 import { initializeTools } from './tools.ts'
 
@@ -17,6 +18,7 @@ export class EpicMeMCP {
 				tools: {},
 				resources: {},
 				completions: {},
+				prompts: {},
 			},
 			instructions: `
 EpicMe: Personal journaling server with AI-powered organization.
@@ -42,6 +44,7 @@ EpicMe: Personal journaling server with AI-powered organization.
 	async init() {
 		await initializeTools(this)
 		await initializeResources(this)
+		await initializePrompts(this)
 	}
 }
 

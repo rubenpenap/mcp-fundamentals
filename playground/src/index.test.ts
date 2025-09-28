@@ -98,59 +98,144 @@ test('Tool Call', async () => {
 	)
 })
 
-test('Resource Link in Tool Response', async () => {
+test('Prompts List', async () => {
 	await using setup = await setupClient()
 	const { client } = setup
-	await client.callTool({
-		name: 'create_tag',
-		arguments: {
-			name: 'Linked Tag Test',
-			description: 'This tag should be linked as a resource',
-		},
-	})
+	try {
+		const list = await client.listPrompts()
 
-	const listResult = await client.callTool({
-		name: 'list_tags',
-		arguments: {},
-	})
+		// 🚨 Proactive check: Ensure prompts are registered
+		invariant(
+			list.prompts.length > 0,
+			'🚨 No prompts found - make sure to register prompts with the prompts capability',
+		)
 
-	const content = listResult.content as Array<any>
-	invariant(Array.isArray(content), '🚨 Tool response content must be an array')
+		const tagSuggestionsPrompt = list.prompts.find(
+			(p) => p.name.includes('tag') || p.name.includes('suggest'),
+		)
+		invariant(
+			tagSuggestionsPrompt,
+			'🚨 No tag suggestions prompt found - should include a prompt for suggesting tags',
+		)
 
-	const resourceLink = content.find(
-		(item: any) =>
-			item.type === 'resource_link' &&
-			item.name === 'Linked Tag Test' &&
-			item.uri &&
-			item.uri.includes('tags'),
-	) as any
+		expect(tagSuggestionsPrompt).toEqual(
+			expect.objectContaining({
+				name: expect.any(String),
+				description: expect.stringMatching(/tag|suggest/i),
+				arguments: expect.arrayContaining([
+					expect.objectContaining({
+						name: expect.stringMatching(/entry|id/i),
+						description: expect.any(String),
+						required: true,
+					}),
+				]),
+			}),
+		)
+	} catch (error: any) {
+		if (
+			error?.code === -32601 ||
+			error?.message?.includes('Method not found')
+		) {
+			console.error('🚨 Prompts capability not implemented!')
+			console.error(
+				"🚨 This exercise requires you to add support for MCP's prompt capability to your server.",
+			)
+			console.error('🚨 You need to:')
+			console.error('🚨   1. Add "prompts" to your server capabilities.')
+			console.error(
+				'🚨   2. Create an initializePrompts function in prompts.ts.',
+			)
+			console.error(
+				'🚨   3. Use server.registerPrompt() to register prompts (e.g., for suggesting tags).',
+			)
+			console.error(
+				'🚨   4. Call initializePrompts() in your main init() method.',
+			)
+			console.error(
+				'🚨   5. Implement prompt handlers that return meaningful, parameterized prompt messages.',
+			)
+			console.error(
+				'🚨 In src/index.ts, add prompts capability and request handlers.',
+			)
+			throw new Error(
+				`🚨 Prompts capability not declared - add "prompts" to server capabilities and implement prompt handlers. ${error}`,
+			)
+		}
+		throw error
+	}
+})
 
-	invariant(
-		resourceLink,
-		'🚨 Resource link for created tag not found in list_tags response',
-	)
-	invariant(resourceLink.uri, '🚨 Resource link must have uri field')
-	invariant(resourceLink.name, '🚨 Resource link must have name field')
-	invariant(
-		typeof resourceLink.uri === 'string',
-		'🚨 Resource link uri must be a string',
-	)
-	invariant(
-		typeof resourceLink.name === 'string',
-		'🚨 Resource link name must be a string',
-	)
-	invariant(
-		resourceLink.uri.includes('tags'),
-		'🚨 Resource link URI should reference the created tag',
-	)
+test('Prompt Get', async () => {
+	await using setup = await setupClient()
+	const { client } = setup
+	try {
+		const list = await client.listPrompts()
+		const firstPrompt = list.prompts[0]
+		invariant(firstPrompt, '🚨 No prompts available to test')
 
-	expect(resourceLink).toEqual(
-		expect.objectContaining({
-			type: 'resource_link',
-			uri: expect.stringMatching(/epicme:\/\/tags\/\d+/),
-			name: expect.stringMatching(/Linked Tag Test/),
-			description: expect.any(String),
-			mimeType: expect.stringMatching(/application\/json/),
-		}),
-	)
+		const result = await client.getPrompt({
+			name: firstPrompt.name,
+			arguments: {
+				entryId: '1',
+			},
+		})
+
+		expect(result).toEqual(
+			expect.objectContaining({
+				messages: expect.arrayContaining([
+					expect.objectContaining({
+						role: expect.stringMatching(/user|system/),
+						content: expect.objectContaining({
+							type: 'text',
+							text: expect.any(String),
+						}),
+					}),
+				]),
+			}),
+		)
+
+		// 🚨 Proactive check: Ensure prompt contains meaningful content
+		invariant(
+			result.messages.length > 0,
+			'🚨 Prompt should contain at least one message',
+		)
+		const firstMessage = result.messages[0]
+		invariant(firstMessage, '🚨 First message should exist')
+		invariant(
+			typeof firstMessage.content.text === 'string',
+			'🚨 Message content text should be a string',
+		)
+		invariant(
+			firstMessage.content.text.length > 10,
+			'🚨 Prompt message should be more than just a placeholder',
+		)
+	} catch (error: any) {
+		if (
+			error?.code === -32601 ||
+			error?.message?.includes('Method not found')
+		) {
+			console.error('🚨 Prompts capability not implemented!')
+			console.error(
+				'🚨 This exercise requires you to create and serve prompts via MCP.',
+			)
+			console.error('🚨 You need to:')
+			console.error('🚨   1. Add "prompts" to your server capabilities.')
+			console.error(
+				'🚨   2. Handle prompt requests by returning prompt messages.',
+			)
+			console.error(
+				'🚨   3. Create prompt templates that help analyze journal entries.',
+			)
+			console.error(
+				'🚨   4. Return prompt messages with proper role and content.',
+			)
+			console.error(
+				'🚨 In src/index.ts, implement a prompt handler to return formatted prompts.',
+			)
+			throw new Error(
+				`🚨 Prompt get functionality not implemented - add prompts capability and a prompt handler. ${error}`,
+			)
+		}
+		throw error
+	}
 })
