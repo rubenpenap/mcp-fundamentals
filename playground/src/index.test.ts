@@ -101,78 +101,48 @@ test('Tool Call', async () => {
 test('Prompts List', async () => {
 	await using setup = await setupClient()
 	const { client } = setup
-	try {
-		const list = await client.listPrompts()
+	const list = await client.listPrompts()
 
-		// 🚨 Proactive check: Ensure prompts are registered
-		invariant(
-			list.prompts.length > 0,
-			'🚨 No prompts found - make sure to register prompts with the prompts capability',
-		)
+	// 🚨 Proactive check: Ensure prompts are registered
+	invariant(
+		list.prompts.length > 0,
+		'🚨 No prompts found - make sure to register prompts with the prompts capability',
+	)
 
-		const tagSuggestionsPrompt = list.prompts.find(
-			(p) => p.name.includes('tag') || p.name.includes('suggest'),
-		)
-		invariant(
-			tagSuggestionsPrompt,
-			'🚨 No tag suggestions prompt found - should include a prompt for suggesting tags',
-		)
-
-		expect(tagSuggestionsPrompt).toEqual(
-			expect.objectContaining({
-				name: expect.any(String),
-				description: expect.stringMatching(/tag|suggest/i),
-				arguments: expect.arrayContaining([
-					expect.objectContaining({
-						name: expect.stringMatching(/entry|id/i),
-						description: expect.any(String),
-						required: true,
-					}),
-				]),
-			}),
-		)
-	} catch (error: any) {
-		if (
-			error?.code === -32601 ||
-			error?.message?.includes('Method not found')
-		) {
-			console.error('🚨 Prompts capability not implemented!')
-			console.error(
-				"🚨 This exercise requires you to add support for MCP's prompt capability to your server.",
-			)
-			console.error('🚨 You need to:')
-			console.error('🚨   1. Add "prompts" to your server capabilities.')
-			console.error(
-				'🚨   2. Create an initializePrompts function in prompts.ts.',
-			)
-			console.error(
-				'🚨   3. Use server.registerPrompt() to register prompts (e.g., for suggesting tags).',
-			)
-			console.error(
-				'🚨   4. Call initializePrompts() in your main init() method.',
-			)
-			console.error(
-				'🚨   5. Implement prompt handlers that return meaningful, parameterized prompt messages.',
-			)
-			console.error(
-				'🚨 In src/index.ts, add prompts capability and request handlers.',
-			)
-			throw new Error(
-				`🚨 Prompts capability not declared - add "prompts" to server capabilities and implement prompt handlers. ${error}`,
-			)
-		}
-		throw error
-	}
+	const tagSuggestionsPrompt = list.prompts.find(
+		(p) => p.name.includes('tag') || p.name.includes('suggest'),
+	)
+	invariant(
+		tagSuggestionsPrompt,
+		'🚨 No tag suggestions prompt found - should include a prompt for suggesting tags',
+	)
 })
 
-test('Prompt Get', async () => {
+test('Optimized Prompt with Embedded Resources', async () => {
 	await using setup = await setupClient()
 	const { client } = setup
-	try {
-		const list = await client.listPrompts()
-		const firstPrompt = list.prompts[0]
-		invariant(firstPrompt, '🚨 No prompts available to test')
+	// First create an entry and tag for testing
+	await client.callTool({
+		name: 'create_entry',
+		arguments: {
+			title: 'Optimized Test Entry',
+			content: 'This entry is for testing optimized prompts',
+		},
+	})
 
+	await client.callTool({
+		name: 'create_tag',
+		arguments: {
+			name: 'Optimization',
+			description: 'Tag for optimization testing',
+		},
+	})
+
+	const list = await client.listPrompts()
+	const firstPrompt = list.prompts[0]
+	invariant(firstPrompt, '🚨 No prompts available to test')
+
+	try {
 		const result = await client.getPrompt({
 			name: firstPrompt.name,
 			arguments: {
@@ -186,56 +156,104 @@ test('Prompt Get', async () => {
 					expect.objectContaining({
 						role: expect.stringMatching(/user|system/),
 						content: expect.objectContaining({
-							type: 'text',
-							text: expect.any(String),
+							type: expect.stringMatching(/text|resource/),
 						}),
 					}),
 				]),
 			}),
 		)
 
-		// 🚨 Proactive check: Ensure prompt contains meaningful content
+		// 🚨 Proactive check: Ensure prompt has multiple messages (optimization means embedding data)
 		invariant(
-			result.messages.length > 0,
-			'🚨 Prompt should contain at least one message',
+			result.messages.length > 1,
+			'🚨 Optimized prompt should have multiple messages - instructions plus embedded data',
 		)
-		const firstMessage = result.messages[0]
-		invariant(firstMessage, '🚨 First message should exist')
+
+		// 🚨 Proactive check: Ensure at least one message is a resource (embedded data)
+		const resourceMessages = result.messages.filter(
+			(m) => m.content.type === 'resource',
+		)
 		invariant(
-			typeof firstMessage.content.text === 'string',
-			'🚨 Message content text should be a string',
+			resourceMessages.length > 0,
+			'🚨 Optimized prompt should embed resource data directly instead of instructing LLM to run tools',
+		)
+
+		// 🚨 Proactive check: Ensure prompt doesn't tell LLM to run data retrieval tools (that's what we're optimizing away)
+		const textMessages = result.messages.filter(
+			(m) => m.content.type === 'text',
+		)
+		const hasDataRetrievalInstructions = textMessages.some(
+			(m) =>
+				typeof m.content.text === 'string' &&
+				(m.content.text.toLowerCase().includes('get_entry') ||
+					m.content.text.toLowerCase().includes('list_tags') ||
+					m.content.text.toLowerCase().includes('look up')),
 		)
 		invariant(
-			firstMessage.content.text.length > 10,
-			'🚨 Prompt message should be more than just a placeholder',
+			!hasDataRetrievalInstructions,
+			'🚨 Optimized prompt should NOT instruct LLM to run data retrieval tools like get_entry or list_tags - data should be embedded directly',
 		)
-	} catch (error: any) {
-		if (
-			error?.code === -32601 ||
-			error?.message?.includes('Method not found')
-		) {
-			console.error('🚨 Prompts capability not implemented!')
-			console.error(
-				'🚨 This exercise requires you to create and serve prompts via MCP.',
+
+		// Note: The prompt can still instruct the LLM to use action tools like create_tag or add_tag_to_entry
+
+		// Validate structure of resource messages
+		resourceMessages.forEach((resMsg) => {
+			expect(resMsg.content).toEqual(
+				expect.objectContaining({
+					type: 'resource',
+					resource: expect.objectContaining({
+						uri: expect.any(String),
+						mimeType: 'application/json',
+						text: expect.any(String),
+					}),
+				}),
 			)
-			console.error('🚨 You need to:')
-			console.error('🚨   1. Add "prompts" to your server capabilities.')
-			console.error(
-				'🚨   2. Handle prompt requests by returning prompt messages.',
+
+			// 🚨 Proactive check: Ensure embedded resource contains valid JSON
+			invariant(
+				'resource' in resMsg.content,
+				'🚨 Resource message must have resource field',
 			)
-			console.error(
-				'🚨   3. Create prompt templates that help analyze journal entries.',
+			invariant(
+				typeof resMsg.content.resource === 'object' &&
+					resMsg.content.resource !== null,
+				'🚨 Resource must be an object',
 			)
-			console.error(
-				'🚨   4. Return prompt messages with proper role and content.',
+			invariant(
+				'text' in resMsg.content.resource,
+				'🚨 Resource must have text field',
 			)
-			console.error(
-				'🚨 In src/index.ts, implement a prompt handler to return formatted prompts.',
+			invariant(
+				typeof resMsg.content.resource.text === 'string',
+				'🚨 Resource text must be a string',
 			)
-			throw new Error(
-				`🚨 Prompt get functionality not implemented - add prompts capability and a prompt handler. ${error}`,
-			)
-		}
-		throw error
+			try {
+				JSON.parse(resMsg.content.resource.text)
+			} catch (error) {
+				throw new Error('🚨 Embedded resource data must be valid JSON')
+			}
+		})
+	} catch (error) {
+		console.error('🚨 Prompt optimization not properly implemented!')
+		console.error(
+			'🚨 This exercise requires you to optimize prompts by embedding resource data directly in the prompt messages, instead of instructing the LLM to call get_entry or list_tags.',
+		)
+		console.error('🚨 You need to:')
+		console.error(
+			'🚨   1. Fetch the entry and tag data in your prompt handler.',
+		)
+		console.error(
+			'🚨   2. Create multiple messages: one with instructions, others with embedded resource content (type: "resource", mimeType: "application/json").',
+		)
+		console.error(
+			'🚨   3. DO NOT tell the LLM to call get_entry or list_tags - provide the data directly.',
+		)
+		console.error(
+			'🚨   4. Ensure at least one message is a resource, and that the resource contains valid JSON.',
+		)
+		console.error('🚨 This reduces LLM tool calls and improves performance!')
+		throw new Error(
+			`🚨 Optimized prompt should embed resource data directly, not instruct LLM to fetch it. ${error}`,
+		)
 	}
 })
