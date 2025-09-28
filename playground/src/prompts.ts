@@ -1,6 +1,5 @@
 import { invariant } from '@epic-web/invariant'
-// 💰 you'll need this
-// import { completable } from '@modelcontextprotocol/sdk/server/completable.js'
+import { completable } from '@modelcontextprotocol/sdk/server/completable.js'
 import { z } from 'zod'
 import { type EpicMeMCP } from './index.ts'
 
@@ -11,12 +10,17 @@ export async function initializePrompts(agent: EpicMeMCP) {
 			title: 'Suggest Tags',
 			description: 'Suggest tags for a journal entry',
 			argsSchema: {
-				// 🐨 make this completable with the `completable` function
-				entryId: z
-					.string()
-					.describe('The ID of the journal entry to suggest tags for'),
-				// 🐨 the second argument to completable should be a function that returns an array of strings
-				// that match the value. Use await agent.db.getEntries() to get available entries and match on the id.
+				entryId: completable(
+					z
+						.string()
+						.describe('The ID of the journal entry to suggest tags for'),
+					async (value) => {
+						const entries = await agent.db.getEntries()
+						return entries
+							.map((entry) => entry.id.toString())
+							.filter((id) => id.includes(value))
+					},
+				),
 			},
 		},
 		async ({ entryId }) => {
