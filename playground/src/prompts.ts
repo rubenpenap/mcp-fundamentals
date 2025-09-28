@@ -1,3 +1,4 @@
+import { invariant } from '@epic-web/invariant'
 import { z } from 'zod'
 import { type EpicMeMCP } from './index.ts'
 
@@ -14,12 +15,14 @@ export async function initializePrompts(agent: EpicMeMCP) {
 			},
 		},
 		async ({ entryId }) => {
-			// 🐨 get the entry and tags from the database
-			// 💰 const entry = await agent.db.getEntry(Number(entryId))
-			// 💰 const tags = await agent.db.listTags()
-			// 💯 As extra credit, add some validation to make sure the entryId is a
-			// valid number and the entry exists (you can use the invariant function
-			// from @epic-web/invariant)
+			invariant(entryId, 'entryId is required')
+			invariant(
+				!Number.isNaN(Number(entryId)),
+				'entryId must be a valid number',
+			)
+			const entry = await agent.db.getEntry(Number(entryId))
+			invariant(entry, `entry with the ID "${entryId}" not found`)
+			const tags = await agent.db.listTags()
 
 			return {
 				messages: [
@@ -27,9 +30,8 @@ export async function initializePrompts(agent: EpicMeMCP) {
 						role: 'user',
 						content: {
 							type: 'text',
-							// 🐨 update the text to explain the entry and tags will be provided.
 							text: `
-Please look up my EpicMe journal entry with ID "${entryId}" using get_entry and look up the tags I have available using list_tags.
+Below is my EpicMe journal entry with ID "${entryId}" and the tags I have available.
 
 Then suggest some tags to add to it. Feel free to suggest new tags I don't have yet.
 
@@ -37,8 +39,28 @@ For each tag I approve, if it does not yet exist, create it with the EpicMe "cre
 								`.trim(),
 						},
 					},
-					// 🐨 add two messages from the user which are embedded resources, one
-					// for the entry and one for the existing tags.
+					{
+						role: 'user',
+						content: {
+							type: 'resource',
+							resource: {
+								uri: 'epicme://tags',
+								mimeType: 'application/json',
+								text: JSON.stringify(tags),
+							},
+						},
+					},
+					{
+						role: 'user',
+						content: {
+							type: 'resource',
+							resource: {
+								uri: `epicme://entries/${entryId}`,
+								mimeType: 'application/json',
+								text: JSON.stringify(entry),
+							},
+						},
+					},
 				],
 			}
 		},
